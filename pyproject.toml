@@ -1,0 +1,44 @@
+[project]
+name = "gridpace"
+version = "0.1.0"
+description = "Real-time grid intelligence with historical context"
+requires-python = ">=3.11"
+dependencies = [
+    "apscheduler>=3.11.2",
+    "duckdb>=1.5.4",
+    "faiss-cpu>=1.14.3",
+    "highspy>=1.14.0",
+    "httpx>=0.28.1",
+    "langgraph>=1.2.6",
+    "mlflow>=1.27.0",
+    "pandas>=3.0.3",
+    "pydantic-settings>=2.14.1",
+    "pyomo>=6.10.1",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+    "requests>=2.34.2",
+    "sentence-transformers>=5.6.0",
+    "streamlit>=1.58.0",
+    "structlog>=26.1.0",
+    "transformers>=5.12.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gridpace"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "detect-secrets>=1.5.0",
+    "pre-commit>=4.6.0",
+    "pytest>=9.1.0",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.15.18",
+]

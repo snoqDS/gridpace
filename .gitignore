@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+
+# uv
+.uv/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Data layers (never commit raw or processed data)
+data/raw/*
+data/silver/*
+data/gold/*
+!data/raw/.gitkeep
+!data/silver/.gitkeep
+!data/gold/.gitkeep
+
+# Model artifacts
+models/cache/*
+models/experiments/*
+!models/cache/.gitkeep
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# IDE
+.cursor/
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Ruff cache
+.ruff_cache/
+
+# Pytest
+.pytest_cache/
+htmlcov/
+.coverage
+
+# detect-secrets
+.secrets.baseline
