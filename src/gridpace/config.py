@@ -5,6 +5,7 @@ Static config loaded from config/ YAML files.
 """
 
 from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Project root
