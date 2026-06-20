@@ -6,6 +6,7 @@ Static config loaded from config/ YAML files.
 
 from pathlib import Path
 
+import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Project root
@@ -49,3 +50,12 @@ class Settings(BaseSettings):
 
 # Single shared instance imported everywhere
 settings = Settings()
+
+def load_settings_yml() -> dict:
+    """Load static config from config/settings.yml."""
+    settings_path = ROOT / "config" / "settings.yml"
+    with open(settings_path) as f:
+        return yaml.safe_load(f)
+
+# Single shared instance
+app_config = load_settings_yml()

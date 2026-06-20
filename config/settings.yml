@@ -1,0 +1,14 @@
+# GridPace Settings
+# -----------------
+
+# Data ingestion
+ingestion:
+  poll_interval_minutes: 120  # 2 hours (free tier limit)
+  dry_run: true               # set to false for live API calls
+  default_row_limit: 10       # rows per fetch during development
+
+# ISOs to monitor
+isos:
+  - ERCOT
+  - CAISO
+  - PJM
