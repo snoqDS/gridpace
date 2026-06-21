@@ -12,19 +12,43 @@ Production grade Python project structure with uv, Ruff, pytest, GitHub Actions 
 
 ### Data Flow
 
+Current state:
+
     GridStatus API
           |
           v
     grid/clients/gridstatus.py   (fetch)
           |
           v
-    grid/validation.py           (schema contract check)
+    grid/storage.py              (DuckDB bronze layer)
+          |
+          v
+    grid/storage.py              (silver and gold transforms)
+          |
+          v
+    ui/app.py                    (Streamlit dashboard, Phase 1)
+
+Target state (full pipeline):
+
+    GridStatus API
+          |
+          v
+    grid/clients/gridstatus.py   (fetch)
+          |
+          v
+    grid/validation.py           (schema contract check, Phase 1)
           |
           v
     grid/storage.py              (DuckDB bronze layer)
           |
           v
     grid/storage.py              (silver and gold transforms)
+          |
+          v
+    intelligence/agents/graph.py (LangGraph narrative agent, Phase 2)
+          |
+          v
+    intelligence/retrieval/      (historical analog search, Phase 3)
           |
           v
     ui/app.py                    (Streamlit dashboard)
@@ -130,6 +154,42 @@ Unit tests use mocked dependencies and temporary databases.
 Integration tests hit live APIs and are skipped in CI by default.
 Run integration tests manually: uv run pytest tests/integration/ -v
 
+## Security
+
+### API Key Management
+
+All secrets loaded from .env via pydantic-settings. Never committed to Git.
+detect-secrets runs as a pre-commit hook to block accidental key commits.
+See .env.example for required keys.
+
+### Dependency Scanning
+
+pip-audit is planned for CI integration to check for known CVEs in dependencies.
+
+### Agent Security Model (Phase 2)
+
+GridPace agents operate under two security constraints by design:
+
+Level 1: Tool allowlisting
+    LangGraph enforces that agents can only call explicitly registered tools.
+    No arbitrary function execution is possible.
+
+Level 2: Read-only external calls
+    All agent tools fetch data only. No tools write, post, delete, or modify
+    external systems. Low attack surface by design.
+
+Level 3: No code execution tools
+    GridPace agents do not have access to a Python REPL or shell execution tool.
+    This eliminates the primary risk vector in agentic systems.
+
+Prompt injection risk is mitigated by structured tool outputs rather than
+passing raw external text directly to the LLM reasoning loop.
+
+### Containerization (Phase 4)
+
+Dockerfile and docker-compose.yml filled in during Phase 4.
+Production deployments run in isolated containers with explicit network rules.
+
 ## Future Considerations
 
 Scale out storage: DuckDB handles gigabytes easily on a single machine.
@@ -147,3 +207,7 @@ database backend changes to PostgreSQL or another SQLAlchemy compatible database
 
 Auto generated documentation: Generate docs from code using Sphinx or mkdocs
 rather than maintaining markdown files manually.
+
+Infrastructure as code: Cloud resources and deployment configuration 
+should be defined in code using Terraform or Pulumi for reproducible 
+environment setup across dev, staging, and production.
