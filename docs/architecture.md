@@ -56,7 +56,7 @@ Historical events sourced from EIA, GridStatus history, and Catalyst Cooperative
     Language           Python 3.11
     Data ingestion     gridstatus, httpx, requests
     Storage            DuckDB (bronze/silver/gold)
-    Scheduling         APScheduler
+    Scheduling         Prefect (pipeline orchestration)
     Agent framework    LangGraph 1.0
     Vector store       FAISS + sentence-transformers
     LLM providers      Ollama, HuggingFace, Anthropic
@@ -73,3 +73,77 @@ Historical events sourced from EIA, GridStatus history, and Catalyst Cooperative
 All secrets loaded from .env via pydantic-settings.
 Static config (ISOs, poll interval, dry_run) in config/settings.yml.
 LLM provider switchable via LLM_PROVIDER in .env.
+
+## Database Migrations
+
+GridPace uses a custom lightweight migration runner rather than Alembic or Flyway.
+
+Rationale: DuckDB's SQLAlchemy support has known rough edges making Alembic unreliable.
+A simple custom runner gives full control with zero compatibility issues.
+
+How it works:
+
+    1. On startup, migrator.py checks for a _migrations tracking table
+    2. Creates it if it does not exist
+    3. Scans src/gridpace/grid/migrations/ for numbered SQL files in order
+    4. Runs any file not already recorded in _migrations
+    5. Records each applied migration with a timestamp
+    6. Safe to call on every app startup — fully idempotent
+
+Adding a new migration:
+
+    1. Create a new SQL file in src/gridpace/grid/migrations/
+    2. Name it NNN_description.sql where NNN is the next number
+    3. Run the migrator — it applies only the new file
+
+In a team environment with a standard relational database, Alembic would be
+the preferred choice for schema versioning and auto-generation from models.
+
+## Testing Strategy
+
+GridPace uses a three-layer test structure:
+
+    tests/
+    ├── conftest.py              # shared constants and config for all tests
+    ├── unit/
+    │   ├── grid/
+    │   │   └── conftest.py     # shared fixtures for grid unit tests
+    │   └── ...
+    └── integration/
+        └── ...
+
+Shared constants live in tests/conftest.py:
+    TEST_ISO, SAMPLE_ROWS, MIGRATION_001, EXPECTED_SCHEMAS
+
+Shared fixtures live in tests/unit/grid/conftest.py:
+    temp_db, initialized_db, sample_lmp_df, sample_fuel_mix_df
+
+pytest loads conftest.py files automatically. No imports needed in test files
+for fixtures. Constants are imported explicitly from tests.conftest.
+
+Adding a new test domain (e.g. intelligence, monitoring):
+    1. Create tests/unit/<domain>/conftest.py with domain specific fixtures
+    2. Add domain specific constants to tests/conftest.py if shared
+    3. Write test files in tests/unit/<domain>/
+
+Unit tests use mocked dependencies and temporary databases.
+Integration tests hit live APIs and are skipped in CI by default.
+Run integration tests manually: uv run pytest tests/integration/ -v
+
+## Future Considerations
+
+Scale out storage: DuckDB handles gigabytes easily on a single machine.
+When bronze data exceeds 90 days, aged off data exports to S3 as Parquet files.
+DuckDB reads S3 Parquet natively so historical queries require no code changes.
+DynamoDB was explicitly ruled out as it is designed for transactional workloads,
+not the analytical time series queries GridPace requires.
+
+Pipeline orchestration: Prefect handles scheduled data collection with retries,
+observability, and a monitoring dashboard. Prefect Cloud free tier enables
+always-on collection independent of local machine uptime.
+
+Schema versioning: Migrate to Alembic when the schema stabilizes and if the
+database backend changes to PostgreSQL or another SQLAlchemy compatible database.
+
+Auto generated documentation: Generate docs from code using Sphinx or mkdocs
+rather than maintaining markdown files manually.

@@ -19,13 +19,14 @@ venv/
 .env.*
 !.env.example
 
-# Data layers (never commit raw or processed data)
-data/raw/*
-data/silver/*
-data/gold/*
-!data/raw/.gitkeep
-!data/silver/.gitkeep
-!data/gold/.gitkeep
+# Data layers (never commit database or archived data)
+data/gridpace.duckdb
+data/archive/bronze/*
+data/archive/silver/*
+data/archive/gold/*
+!data/archive/bronze/.gitkeep
+!data/archive/silver/.gitkeep
+!data/archive/gold/.gitkeep
 
 # Model artifacts
 models/cache/*

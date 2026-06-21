@@ -20,7 +20,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.2.0] - 2026-06-20
 
 ### Added
-- Phase 1 Session 1: GridStatus client
+- Phase 1: GridStatus client
 - grid/clients/gridstatus.py with get_lmp() and get_fuel_mix()
 - dry_run mode for development without burning API quota
 - config/settings.yml with poll interval and ISO list
@@ -28,3 +28,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Integration test stubs for live API (skipped in CI)
 - docs/data_sources.md documenting GridStatus API usage and limits
 
+## [0.3.0] - 2026-06-20
+
+### Added
+- Phase 1: DuckDB storage layer with medallion architecture
+- grid/migrator.py custom lightweight migration runner
+- grid/migrations/001_create_bronze_silver_gold.sql first migration
+- bronze, silver, and gold schemas with full table definitions
+- write_bronze_lmp() and write_bronze_fuel_mix() ingestion functions
+- transform_to_silver_lmp() and transform_to_silver_fuel_mix() with renewable_pct computation
+- compute_gold_iso_summary() hourly aggregation to gold layer
+- get_last_ingested_at() and check_data_gap() for operational monitoring
+- apply_retention_policy() with 90 day bronze retention
+- data/archive/ folder structure for Parquet archive path
+- 13 new unit tests for migrator and storage (24 total passing)
+- Prefect selected for future pipeline orchestration (replaces APScheduler)
+
+### Changed
+- data/ folder restructured to data/archive/bronze/silver/gold
+- config/settings.yml updated with retention.bronze_days setting

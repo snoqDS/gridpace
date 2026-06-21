@@ -47,9 +47,27 @@ This project uses Ruff for linting and formatting. Before committing:
 
 ## Running Tests
 
-    make test
+    uv run pytest tests/ -v
 
 All tests must pass before submitting a pull request.
+
+Unit tests use mocked dependencies and temporary databases.
+Integration tests hit live APIs and are skipped in CI by default.
+Run integration tests manually only when verifying live API connectivity:
+
+    uv run pytest tests/integration/ -v
+
+## Test Structure
+
+Shared constants and fixtures live in conftest.py files:
+
+    tests/conftest.py               shared constants for all tests
+    tests/unit/grid/conftest.py     shared fixtures for grid unit tests
+
+When adding new tests:
+    Use constants from tests/conftest.py rather than hardcoding values
+    Add domain specific fixtures to the nearest conftest.py
+    Never hardcode ISO names, row counts, or migration filenames in tests
 
 ## Running Evals
 

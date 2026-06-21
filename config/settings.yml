@@ -12,3 +12,8 @@ isos:
   - ERCOT
   - CAISO
   - PJM
+
+# Data retention policy in days
+retention:
+  bronze_days: 90
+
