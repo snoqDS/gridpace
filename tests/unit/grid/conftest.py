@@ -15,13 +15,17 @@ def temp_db(tmp_path):
 
 
 @pytest.fixture
-def initialized_db(temp_db):
+def initialized_db(temp_db, monkeypatch):
     """Provide a fully migrated temporary database."""
+    monkeypatch.setattr("gridpace.grid.storage.DB_PATH", temp_db)
+    monkeypatch.setattr("gridpace.grid.migrator.DB_PATH", temp_db)
+
     from gridpace.grid.migrator import (
         _ensure_migrations_table,
         _get_applied_migrations,
         _get_pending_migrations,
     )
+    import duckdb
     conn = duckdb.connect(str(temp_db))
     _ensure_migrations_table(conn)
     applied = _get_applied_migrations(conn)
