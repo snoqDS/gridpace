@@ -25,7 +25,6 @@ def initialized_db(temp_db, monkeypatch):
         _get_applied_migrations,
         _get_pending_migrations,
     )
-    import duckdb
     conn = duckdb.connect(str(temp_db))
     _ensure_migrations_table(conn)
     applied = _get_applied_migrations(conn)
