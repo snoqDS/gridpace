@@ -1,0 +1,104 @@
+# GridStatus Data Contract
+# Defines expected schema for data received from GridStatus API.
+# Validated before promotion from bronze to silver layer.
+# Update this file when GridStatus API schema changes.
+
+version: "1.0"
+source: "GridStatus"
+updated: "2026-06-21"
+
+datasets:
+  lmp:
+    description: "Locational Marginal Prices per ISO"
+    silver_columns:
+      - iso
+      - interval_start
+      - location
+      - location_type
+      - lmp
+      - market
+    column_map:
+      Interval Start: interval_start
+      Interval End: interval_end
+      LMP: lmp
+      Location: location
+      Location Type: location_type
+      Market: market
+      time: interval_start
+      energy: energy
+      congestion: congestion
+    fields:
+      - name: iso
+        type: string
+        nullable: false
+        description: "ISO/RTO identifier e.g. ERCOT, CAISO, PJM"
+      - name: interval_start
+        type: datetime
+        nullable: false
+        description: "Start of the pricing interval"
+      - name: lmp
+        type: float
+        nullable: false
+        description: "Locational marginal price in dollars per MWh"
+      - name: location
+        type: string
+        nullable: true
+        description: "Price node or hub location"
+      - name: location_type
+        type: string
+        nullable: true
+        description: "Type of location e.g. Resource Node, Hub"
+      - name: market
+        type: string
+        nullable: true
+        description: "Market type e.g. REAL_TIME_SCED"
+
+  fuel_mix:
+    description: "Generation fuel mix by ISO"
+    silver_columns:
+      - iso
+      - time
+      - natural_gas
+      - wind
+      - solar
+      - coal
+      - nuclear
+      - other
+      - renewable_pct
+    column_map:
+      Time: time
+      Natural Gas: natural_gas
+      Wind: wind
+      Solar: solar
+      Coal: coal
+      Nuclear: nuclear
+      Other: other
+    fields:
+      - name: iso
+        type: string
+        nullable: false
+        description: "ISO/RTO identifier"
+      - name: time
+        type: datetime
+        nullable: false
+        description: "Timestamp of the fuel mix reading"
+      - name: natural_gas
+        type: float
+        nullable: true
+        description: "Natural gas generation in MW or percentage"
+      - name: wind
+        type: float
+        nullable: true
+        description: "Wind generation in MW or percentage"
+      - name: solar
+        type: float
+        nullable: true
+        description: "Solar generation in MW or percentage"
+      - name: coal
+        type: float
+        nullable: true
+        description: "Coal generation in MW or percentage"
+      - name: nuclear
+        type: float
+        nullable: true
+        description: "Nuclear generation in MW or percentage"

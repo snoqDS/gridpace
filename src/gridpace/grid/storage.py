@@ -8,7 +8,6 @@ Run migrations before using storage functions:
     run_migrations()
 """
 
-
 import json
 from datetime import UTC, datetime
 
@@ -87,13 +86,40 @@ def write_bronze_fuel_mix(df: pd.DataFrame, iso: str) -> int:
     conn.close()
     return rows_written
 
+
 def transform_to_silver_lmp() -> int:
     """
     Transform bronze LMP to silver.
-    Cleans nulls, normalizes column names, deduplicates.
-    Returns number of rows written.
+    Applies GridStatus transformer then validates against contract.
+    Returns number of rows written to silver.
     """
+    from gridpace.grid.transformers.gridstatus import transform_lmp
+    from gridpace.grid.validation import validate_dataframe
+
     conn = get_connection()
+    raw = conn.execute("SELECT * FROM bronze.lmp").df()
+
+    if raw.empty:
+        conn.close()
+        return 0
+
+    normalized_frames = []
+    for iso in raw["iso"].unique():
+        iso_df = raw[raw["iso"] == iso].copy()
+        transformed = transform_lmp(iso_df, iso)
+        result = validate_dataframe(transformed, "gridstatus", "lmp")
+        if not result["valid"]:
+            # TODO: replace with structlog logger.warning() in Session 4
+            print(f"WARNING: LMP validation failed for {iso}: {result['errors']}")
+            continue
+        normalized_frames.append(transformed)
+
+    if not normalized_frames:
+        conn.close()
+        return 0
+
+    combined = pd.concat(normalized_frames, ignore_index=True)
+    conn.register("combined", combined)
 
     conn.execute("""
         INSERT INTO silver.lmp (
@@ -105,12 +131,12 @@ def transform_to_silver_lmp() -> int:
             location,
             location_type,
             lmp,
-            COALESCE(market, 'UNKNOWN') AS market
-        FROM bronze.lmp
+            market
+        FROM combined
         WHERE lmp IS NOT NULL
         AND interval_start IS NOT NULL
-        AND (iso, interval_start, location) NOT IN (
-            SELECT iso, interval_start, location FROM silver.lmp
+        AND (iso, interval_start, COALESCE(location, '')) NOT IN (
+            SELECT iso, interval_start, COALESCE(location, '') FROM silver.lmp
         )
     """)
 
@@ -122,10 +148,36 @@ def transform_to_silver_lmp() -> int:
 def transform_to_silver_fuel_mix() -> int:
     """
     Transform bronze fuel mix to silver.
-    Computes renewable_pct as derived field.
-    Returns number of rows written.
+    Applies GridStatus transformer then validates against contract.
+    Returns number of rows written to silver.
     """
+    from gridpace.grid.transformers.gridstatus import transform_fuel_mix
+    from gridpace.grid.validation import validate_dataframe
+
     conn = get_connection()
+    raw = conn.execute("SELECT * FROM bronze.fuel_mix").df()
+
+    if raw.empty:
+        conn.close()
+        return 0
+
+    normalized_frames = []
+    for iso in raw["iso"].unique():
+        iso_df = raw[raw["iso"] == iso].copy()
+        transformed = transform_fuel_mix(iso_df, iso)
+        result = validate_dataframe(transformed, "gridstatus", "fuel_mix")
+        if not result["valid"]:
+            # TODO: replace with structlog logger.warning() in Session 4
+            print(f"WARNING: Fuel mix validation failed for {iso}: {result['errors']}")
+            continue
+        normalized_frames.append(transformed)
+
+    if not normalized_frames:
+        conn.close()
+        return 0
+
+    combined = pd.concat(normalized_frames, ignore_index=True)
+    conn.register("combined", combined)
 
     conn.execute("""
         INSERT INTO silver.fuel_mix (
@@ -141,12 +193,8 @@ def transform_to_silver_fuel_mix() -> int:
             coal,
             nuclear,
             other,
-            ROUND(
-                (wind + solar) /
-                NULLIF(natural_gas + wind + solar + coal + nuclear + other, 0)
-                * 100, 2
-            ) AS renewable_pct
-        FROM bronze.fuel_mix
+            renewable_pct
+        FROM combined
         WHERE time IS NOT NULL
         AND (iso, time) NOT IN (
             SELECT iso, time FROM silver.fuel_mix
@@ -156,6 +204,7 @@ def transform_to_silver_fuel_mix() -> int:
     rows = conn.execute("SELECT COUNT(*) FROM silver.fuel_mix").fetchone()[0]
     conn.close()
     return rows
+
 
 def compute_gold_iso_summary() -> int:
     """
@@ -192,6 +241,7 @@ def compute_gold_iso_summary() -> int:
     conn.close()
     return rows
 
+
 def apply_retention_policy() -> int:
     """
     Delete bronze data older than retention window.
@@ -223,6 +273,7 @@ def apply_retention_policy() -> int:
     total = lmp_deleted + fuel_deleted
     return total
 
+
 def get_last_ingested_at(table: str = "lmp") -> str | None:
     """
     Return the most recent ingested_at timestamp from bronze.
@@ -234,10 +285,10 @@ def get_last_ingested_at(table: str = "lmp") -> str | None:
         table: 'lmp' or 'fuel_mix'
     """
     conn = get_connection()
-    
+
     try:
         result = conn.execute(f"""
-            SELECT MAX(ingested_at) 
+            SELECT MAX(ingested_at)
             FROM bronze.{table}
         """).fetchone()[0]
         conn.close()
@@ -255,11 +306,10 @@ def check_data_gap(table: str = "lmp") -> dict:
     Compares last ingested_at to current time vs poll interval.
     Returns dict with gap info for logging.
     """
-    
     poll_minutes = app_config["ingestion"]["poll_interval_minutes"]
     last = get_last_ingested_at(table)
     now = datetime.now(UTC)
-    
+
     if last is None:
         return {
             "has_gap": False,
@@ -267,11 +317,11 @@ def check_data_gap(table: str = "lmp") -> dict:
             "gap_minutes": None,
             "message": "No data in database yet — first run."
         }
-    
+
     gap_minutes = (now - last).total_seconds() / 60
     expected_intervals = int(gap_minutes / poll_minutes)
     has_gap = expected_intervals > 1
-    
+
     result = {
         "has_gap": has_gap,
         "last_ingested_at": last,
@@ -283,7 +333,7 @@ def check_data_gap(table: str = "lmp") -> dict:
             f"No gap detected. Last ingested {round(gap_minutes, 1)} minutes ago."
         )
     }
-    
+
     # TODO: replace with structlog logger.warning() in Session 4
     print(f"Data gap check: {result['message']}")
     return result

@@ -11,6 +11,19 @@ Attribution: Required per ToS Section 4.4 "Powered by Grid Status"
 Note: ISO list is configured in config/settings.yml. 
 Add or remove ISOs there without updating this file.
 
+### API Reference
+
+GridStatus Python library: https://github.com/gridstatus/gridstatus
+GridStatus API docs: https://docs.gridstatus.io
+GridStatus ToS: https://www.gridstatus.io/terms
+
+Methods used:
+  iso.get_lmp(date="latest") — real time LMP prices
+  iso.get_fuel_mix(date="latest") — current generation fuel mix
+
+Schema contracts defined in:
+  src/gridpace/grid/contracts/gridstatus.yml
+
 ### Datasets Used
 
 LMP (Locational Marginal Prices)
@@ -22,7 +35,7 @@ LMP (Locational Marginal Prices)
 Fuel Mix (Generation by Fuel Type)
   Endpoint: iso.get_fuel_mix(date="latest")
   Frequency: Varies by ISO
-  ISOs: ERCOT, CAISO, PJM
+  ISOs: Configured in config/settings.yml under isos:
   Key fields: time, natural_gas, wind, solar, coal, nuclear
 
 ### API Limits (Free Tier)
@@ -38,17 +51,13 @@ Fuel Mix (Generation by Fuel Type)
   Run integration tests manually: uv run pytest tests/integration/ -v
 
 ## EIA Grid Monitor
-
-Coming in Session 2.
+Planned for Phase 1.
 
 ## WattTime
-
-Coming in Session 2.
+Planned for Phase 1.
 
 ## Ember API
-
-Coming in Session 2.
+Planned for Phase 1.
 
 ## Weather
-
 TBD.

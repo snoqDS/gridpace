@@ -17,16 +17,22 @@ Current state:
     GridStatus API
           |
           v
-    grid/clients/gridstatus.py   (fetch)
+    grid/clients/gridstatus.py       (fetch)
           |
           v
-    grid/storage.py              (DuckDB bronze layer)
+    grid/storage.py                  (DuckDB bronze layer)
           |
           v
-    grid/storage.py              (silver and gold transforms)
+    grid/transformers/gridstatus.py  (column mapping, normalization, business logic)
           |
           v
-    ui/app.py                    (Streamlit dashboard, Phase 1)
+    grid/validation.py               (schema contract check)
+          |
+          v
+    grid/storage.py                  (silver and gold transforms)
+          |
+          v
+    ui/app.py                        (Streamlit dashboard, Phase 1)
 
 Target state (full pipeline):
 

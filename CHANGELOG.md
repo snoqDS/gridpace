@@ -47,3 +47,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - data/ folder restructured to data/archive/bronze/silver/gold
 - config/settings.yml updated with retention.bronze_days setting
+
+## [0.4.0] - 2026-06-21
+
+### Added
+- Phase 1: Data contracts, transformers, and validation layer
+- grid/contracts/gridstatus.yml schema contract with column maps and silver column definitions
+- grid/transformers/ package replacing normalizer.py
+- grid/transformers/utils.py shared transformation utilities
+- grid/transformers/gridstatus.py source specific transforms for LMP and fuel mix
+- grid/validation.py contract enforcement between bronze and silver layers
+- renewable_pct computed in transformer layer not storage layer
+- market defaulting to UNKNOWN in transformer layer
+- Single source of truth for silver columns in contract YAML
+- 18 new tests for transformers and validation (42 total passing)
+
+### Changed
+- Pipeline is now bronze to transformer to validation to silver
+- Business logic moved from storage.py to transformer layer
+- Silver column definitions centralized in gridstatus.yml
+- DuckDB combined DataFrame registered before SQL execution
