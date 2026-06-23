@@ -4,7 +4,6 @@ Tests task behavior using .fn() to bypass Prefect context requirements.
 DB-dependent tests use initialized_db fixture from conftest.py.
 """
 
-import importlib
 from unittest.mock import patch
 
 import pandas as pd
@@ -28,24 +27,20 @@ def test_fetch_fuel_mix_task_returns_dataframe():
     assert len(result) > 0
 
 
-def test_write_bronze_task_lmp(initialized_db, sample_lmp_df):
+def test_write_bronze_task_lmp(initialized_db, monkeypatch, sample_lmp_df):
     """write_bronze_task writes LMP data to bronze."""
-    with patch("gridpace.grid.storage.DB_PATH", initialized_db):
-        from gridpace.grid import storage
-        importlib.reload(storage)
-        from gridpace.grid.flows import write_bronze_task
-        rows = write_bronze_task.fn(sample_lmp_df, TEST_ISO, "lmp")
-        assert rows == SAMPLE_ROWS
+    monkeypatch.setattr("gridpace.grid.storage.DB_PATH", initialized_db)
+    from gridpace.grid.flows import write_bronze_task
+    rows = write_bronze_task.fn(sample_lmp_df, TEST_ISO, "lmp")
+    assert rows == SAMPLE_ROWS
 
 
-def test_write_bronze_task_fuel_mix(initialized_db, sample_fuel_mix_df):
+def test_write_bronze_task_fuel_mix(initialized_db, monkeypatch, sample_fuel_mix_df):
     """write_bronze_task writes fuel mix data to bronze."""
-    with patch("gridpace.grid.storage.DB_PATH", initialized_db):
-        from gridpace.grid import storage
-        importlib.reload(storage)
-        from gridpace.grid.flows import write_bronze_task
-        rows = write_bronze_task.fn(sample_fuel_mix_df, TEST_ISO, "fuel_mix")
-        assert rows == SAMPLE_ROWS
+    monkeypatch.setattr("gridpace.grid.storage.DB_PATH", initialized_db)
+    from gridpace.grid.flows import write_bronze_task
+    rows = write_bronze_task.fn(sample_fuel_mix_df, TEST_ISO, "fuel_mix")
+    assert rows == SAMPLE_ROWS
 
 
 def test_gap_check_task_returns_dict():
