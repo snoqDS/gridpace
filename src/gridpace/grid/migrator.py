@@ -18,6 +18,9 @@ from pathlib import Path
 import duckdb
 
 from gridpace.config import ROOT
+from gridpace.monitoring.logger import get_logger
+
+log = get_logger(__name__)
 
 MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 DB_PATH = ROOT / "data" / "gridpace.duckdb"
@@ -63,22 +66,22 @@ def run_migrations() -> None:
     pending = _get_pending_migrations(applied)
 
     if not pending:
-        print("Database is up to date. No migrations to run.")
+        log.info("migrations_current", status="no_pending_migrations")
         conn.close()
         return
 
     for migration_file in pending:
-        print(f"Applying migration: {migration_file.name}")
+        log.info("migration_applying", migration=migration_file.name)
         sql = migration_file.read_text()
         conn.execute(sql)
         conn.execute(
             "INSERT INTO _migrations (id) VALUES (?)",
             [migration_file.name]
         )
-        print(f"Applied: {migration_file.name}")
+        log.info("migration_applied", migration=migration_file.name)
 
     conn.close()
-    print(f"Migrations complete. {len(pending)} migration(s) applied.")
+    log.info("migrations_complete", count=len(pending))
 
 
 if __name__ == "__main__":

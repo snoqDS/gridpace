@@ -66,6 +66,21 @@ dry_run mode returns sample data during development. No API quota consumed.
 DuckDB serves as the local analytical warehouse. Dashboard reads from DuckDB, not live API.
 Integration tests skipped in CI to preserve API quota. Run manually to verify live connectivity.
 
+Polling resolution: GridStatus free tier allows 250 API requests per month.
+To stay within this limit, the pipeline polls every 120 minutes by default,
+configurable in config/settings.yml. Price spikes typically last 5 to 30
+minutes and will not be captured at this resolution. Anomaly detection is
+designed for sustained conditions only, not transient price spikes.
+Production deployment with a paid GridStatus tier would enable 5-minute
+polling and real-time spike detection. This is a documented constraint,
+not a design flaw.
+
+Pipeline orchestration: Prefect @flow and @task decorators wrap existing pipeline
+functions. Tasks retry twice on failure with 30-second delays. ISOs fetch in
+parallel via task futures. get_run_logger() removed from tasks — structlog handles
+all logging to avoid Prefect context requirements in tests. Tasks tested via .fn()
+which bypasses Prefect context and calls the underlying Python function directly.
+
 ## Phase 2: Agentic Narrative Layer (Planned)
 
 LangGraph state machine with observe, diagnose, explain, and publish nodes.
@@ -144,6 +159,9 @@ GridPace uses a three-layer test structure:
 
 Shared constants live in tests/conftest.py:
     TEST_ISO, SAMPLE_ROWS, MIGRATION_001, EXPECTED_SCHEMAS
+
+Flow tasks tested via .fn() to bypass Prefect context requirements.
+Integration tests skipped in CI — run manually to verify live API connectivity.
 
 Shared fixtures live in tests/unit/grid/conftest.py:
     temp_db, initialized_db, sample_lmp_df, sample_fuel_mix_df

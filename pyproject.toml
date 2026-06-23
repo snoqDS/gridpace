@@ -13,6 +13,7 @@ dependencies = [
     "langgraph>=1.2.6",
     "mlflow>=1.27.0",
     "pandas>=3.0.3",
+    "prefect>=3.7.5",
     "pydantic-settings>=2.14.1",
     "pyomo>=6.10.1",
     "python-dotenv>=1.2.2",

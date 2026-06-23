@@ -15,6 +15,9 @@ import duckdb
 import pandas as pd
 
 from gridpace.config import ROOT, app_config
+from gridpace.monitoring.logger import get_logger
+
+log = get_logger(__name__)
 
 DB_PATH = ROOT / "data" / "gridpace.duckdb"
 
@@ -109,8 +112,7 @@ def transform_to_silver_lmp() -> int:
         transformed = transform_lmp(iso_df, iso)
         result = validate_dataframe(transformed, "gridstatus", "lmp")
         if not result["valid"]:
-            # TODO: replace with structlog logger.warning() in Session 4
-            print(f"WARNING: LMP validation failed for {iso}: {result['errors']}")
+            log.warning("lmp_validation_failed", iso=iso, errors=result["errors"])
             continue
         normalized_frames.append(transformed)
 
@@ -167,8 +169,7 @@ def transform_to_silver_fuel_mix() -> int:
         transformed = transform_fuel_mix(iso_df, iso)
         result = validate_dataframe(transformed, "gridstatus", "fuel_mix")
         if not result["valid"]:
-            # TODO: replace with structlog logger.warning() in Session 4
-            print(f"WARNING: Fuel mix validation failed for {iso}: {result['errors']}")
+            log.warning("fuel_mix_validation_failed", iso=iso, errors=result["errors"])
             continue
         normalized_frames.append(transformed)
 
@@ -253,8 +254,7 @@ def apply_retention_policy() -> int:
     try:
         retention_days = app_config["retention"]["bronze_days"]
     except KeyError:
-        # TODO: replace print warning with structlog logger.warning() in Session 4
-        print("WARNING: retention.bronze_days not found in settings.yml, using default 90 days")
+        log.warning("retention_config_missing", default_days=90)
         retention_days = 90
 
     result = conn.execute(f"""
@@ -294,8 +294,7 @@ def get_last_ingested_at(table: str = "lmp") -> str | None:
         conn.close()
         return result
     except Exception as e:
-        # TODO: replace with structlog logger.warning() in Session 4
-        print(f"WARNING: Could not get last ingested_at for {table}: {e}")
+        log.warning("last_ingested_query_failed", table=table, error=str(e))
         conn.close()
         return None
 
@@ -334,6 +333,6 @@ def check_data_gap(table: str = "lmp") -> dict:
         )
     }
 
-    # TODO: replace with structlog logger.warning() in Session 4
-    print(f"Data gap check: {result['message']}")
+    log.info("data_gap_check", **result)
+
     return result

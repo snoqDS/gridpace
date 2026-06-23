@@ -67,3 +67,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Business logic moved from storage.py to transformer layer
 - Silver column definitions centralized in gridstatus.yml
 - DuckDB combined DataFrame registered before SQL execution
+
+## [0.5.0] - 2026-06-22
+
+### Added
+- Phase 1: Prefect orchestration and structured logging
+- monitoring/logger.py with structlog JSON structured logging
+- grid/flows.py with @flow and @task decorators for full pipeline orchestration
+- Parallel ISO fetching via Prefect task futures
+- Replaced all print() statements with structlog throughout codebase
+- DO_NOT_TRACK and PREFECT_SERVER_ANALYTICS_ENABLED env vars to disable telemetry
+- 9 new tests for flows and logger (51 total passing)
+
+### Changed
+- Pipeline now orchestrated via Prefect with retry logic on fetch tasks
+- All logging standardized to structlog JSON format

@@ -7,6 +7,9 @@ import gridstatus
 import pandas as pd
 
 from gridpace.config import app_config
+from gridpace.monitoring.logger import get_logger
+
+log = get_logger(__name__)
 
 # Sample data for dry_run mode
 SAMPLE_LMP = pd.DataFrame({
@@ -49,7 +52,7 @@ def get_lmp(iso_name: str = "ERCOT") -> pd.DataFrame:
     limit = app_config["ingestion"]["default_row_limit"]
 
     if dry_run:
-        print(f"[dry_run] Returning sample LMP data for {iso_name}")
+        log.info("dry_run_lmp", iso=iso_name, mode="dry_run")
         return SAMPLE_LMP
 
     iso = _get_iso(iso_name)
@@ -71,7 +74,7 @@ def get_fuel_mix(iso_name: str = "ERCOT") -> pd.DataFrame:
     limit = app_config["ingestion"]["default_row_limit"]
 
     if dry_run:
-        print(f"[dry_run] Returning sample fuel mix data for {iso_name}")
+        log.info("dry_run_fuel_mix", iso=iso_name, mode="dry_run")
         return SAMPLE_FUEL_MIX
 
     iso = _get_iso(iso_name)

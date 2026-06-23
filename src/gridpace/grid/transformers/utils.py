@@ -12,6 +12,10 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+from gridpace.monitoring.logger import get_logger
+
+log = get_logger(__name__)
+
 CONTRACTS_DIR = Path(__file__).parent.parent / "contracts"
 
 
@@ -51,8 +55,7 @@ def normalize_timestamps(df: pd.DataFrame, columns: list) -> pd.DataFrame:
         try:
             df[col] = pd.to_datetime(df[col], utc=True)
         except Exception:
-            # TODO: replace with structlog logger.warning() in Session 4
-            print(f"WARNING: Could not normalize timestamp column '{col}'")
+            log.warning("timestamp_normalization_failed", column=col)
     return df
 
 
