@@ -53,6 +53,8 @@ Copy the environment file and add your API keys:
 
     cp .env.example .env
 
+See [docs/setup.md](docs/setup.md) for detailed setup instructions including API key signup and first run walkthrough.
+
 Run the dashboard:
 
     make run

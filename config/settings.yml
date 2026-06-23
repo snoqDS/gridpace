@@ -17,3 +17,15 @@ isos:
 retention:
   bronze_days: 90
 
+dashboard:
+  # Both values derived from ingestion.poll_interval_minutes * 60
+  # If you change poll_interval_minutes, update these to match
+  cache_ttl_seconds: 7200        # 120 minutes * 60 seconds
+  refresh_interval_seconds: 7200  # 120 minutes * 60 seconds
+
+thresholds:
+  lmp:
+    # LMP price level thresholds in $/MWh
+    # TODO Session 6: replace with statistical baselines per ISO
+    normal_max: 50     # below this is normal
+    elevated_max: 100  # below this is elevated, above is high alert

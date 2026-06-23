@@ -4,6 +4,8 @@
 
 GridPace is a real time grid intelligence platform built in four phases.
 
+For setup instructions see docs/setup.md.
+
 ## Phase 0: Repo Scaffolding (Complete)
 
 Production grade Python project structure with uv, Ruff, pytest, GitHub Actions CI, and Apache 2.0 license.
@@ -17,7 +19,7 @@ Current state:
     GridStatus API
           |
           v
-    grid/clients/gridstatus.py       (fetch)
+    grid/clients/gridstatus.py       (fetch, dry_run mode available)
           |
           v
     grid/storage.py                  (DuckDB bronze layer)
@@ -32,7 +34,10 @@ Current state:
     grid/storage.py                  (silver and gold transforms)
           |
           v
-    ui/app.py                        (Streamlit dashboard, Phase 1)
+    grid/flows.py                    (Prefect orchestration, parallel ISO fetching)
+          |
+          v
+    ui/app.py                        (Streamlit dashboard, live ISO price cards)
 
 Target state (full pipeline):
 

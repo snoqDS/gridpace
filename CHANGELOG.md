@@ -82,3 +82,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Pipeline now orchestrated via Prefect with retry logic on fetch tasks
 - All logging standardized to structlog JSON format
+
+## [0.6.0] - 2026-06-23
+
+### Added
+- Phase 1: Streamlit dashboard with live ISO price cards
+- ui/app.py dashboard skeleton with sidebar, main content, and footer
+- ui/components/iso_cards.py LMP price cards per ISO
+- GridStatus attribution footer per ToS Section 4.4
+- LMP price thresholds moved to config/settings.yml
+- dashboard cache_ttl_seconds and refresh_interval_seconds in config
+- make run launches dashboard at localhost:8501
+- 5 new UI tests, 56 total passing
+
+### Changed
+- config/settings.yml updated with dashboard and thresholds sections
