@@ -1,31 +1,123 @@
 # GridPace Settings
 # -----------------
+# Authoritative configuration for all GridPace components.
+# anomaly.py, iso_cards.py, and the Prefect flows all read from this file
+# via gridpace.config.app_config. Change values here; never hardcode them.
 
+# ---------------------------------------------------------------------------
 # Data ingestion
+# ---------------------------------------------------------------------------
 ingestion:
-  poll_interval_minutes: 120  # 2 hours (free tier limit)
+  poll_interval_minutes: 120  # 2-hour interval — GridStatus free tier limit
+                              # (250 requests/month). Price spikes shorter
+                              # than ~5-30 min will be missed by design.
+                              # Anomaly detection targets sustained conditions
+                              # only. See docs/architecture.md.
   dry_run: true               # set to false for live API calls
   default_row_limit: 10       # rows per fetch during development
 
+# ---------------------------------------------------------------------------
 # ISOs to monitor
+# ---------------------------------------------------------------------------
 isos:
   - ERCOT
   - CAISO
   - PJM
 
-# Data retention policy in days
+# ---------------------------------------------------------------------------
+# Data retention
+# ---------------------------------------------------------------------------
 retention:
-  bronze_days: 90
+  bronze_days: 90   # raw bronze data ages off after 90 days
+                    # silver/gold layers retain processed aggregates
 
+# ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
 dashboard:
-  # Both values derived from ingestion.poll_interval_minutes * 60
-  # If you change poll_interval_minutes, update these to match
-  cache_ttl_seconds: 7200        # 120 minutes * 60 seconds
-  refresh_interval_seconds: 7200  # 120 minutes * 60 seconds
+  # cache_ttl_seconds and refresh_interval_seconds must equal
+  # ingestion.poll_interval_minutes * 60. If you change the poll interval,
+  # update both values here to match.
+  cache_ttl_seconds: 7200         # 120 min * 60 s — Streamlit @st.cache_data TTL
+  refresh_interval_seconds: 7200  # 120 min * 60 s — auto-refresh trigger
+  lookback_hours: 48          # time window for min/max display and anomaly baselines
 
+
+# ---------------------------------------------------------------------------
+# LMP price thresholds ($/MWh)
+# Used by iso_cards.py for colour-coded price display.
+# These are static display bands, separate from anomaly detection.
+# Anomaly detection uses statistical z-score baselines (see [anomaly] below).
+# ---------------------------------------------------------------------------
 thresholds:
   lmp:
-    # LMP price level thresholds in $/MWh
-    # TODO Session 6: replace with statistical baselines per ISO
-    normal_max: 50     # below this is normal
-    elevated_max: 100  # below this is elevated, above is high alert
+    normal_max: 50     # below this is normal (green)
+    elevated_max: 100  # below this is elevated (yellow); above is high alert (red)
+
+# ---------------------------------------------------------------------------
+# Anomaly detection
+# Used by intelligence/detection/anomaly.py.
+# All thresholds reference standard normal distribution coverage bands:
+#   |z| < 1.0  => within ~68% of historical observations  (green)
+#   |z| < 2.0  => within ~95% of historical observations  (yellow)
+#   |z| < 3.0  => within ~99.7% of historical observations (red)
+#   |z| >= 3.0 => extreme outlier                          (critical)
+#
+# Status levels (five total):
+#   grey     — insufficient history to compute baseline
+#   green    — normal
+#   yellow   — elevated
+#   red      — anomalous
+#   critical — extreme outlier; warrants immediate attention
+#
+# Polling constraint: baselines are computed from 2-hour-interval data.
+# Only sustained anomalies are detectable; transient spikes are not.
+# ---------------------------------------------------------------------------
+anomaly:
+  min_data_points: 5          # minimum history rows before baseline is valid;
+                              # returns grey status if below this count
+  z_score_elevated: 1.0       # yellow threshold — ~68% normal band boundary
+  z_score_high: 2.0           # red threshold    — ~95% normal band boundary
+  z_score_critical: 3.0       # critical threshold — ~99.7% normal band boundary
+
+# ---------------------------------------------------------------------------
+# Seed script configuration
+# Synthetic data parameters for scripts/seed_db.py
+# Adjust these to generate more realistic data for your region/timeframe
+# ---------------------------------------------------------------------------
+seed:
+  default_hours: 48   # hours of synthetic history to generate by default
+
+  # LMP price distributions per ISO (mean and std in $/MWh)
+  # Based on approximate historical averages
+  lmp_params:
+    ERCOT:
+      mean: 35.0
+      std: 12.0
+    CAISO:
+      mean: 45.0
+      std: 15.0
+    PJM:
+      mean: 40.0
+      std: 10.0
+
+  # Approximate fuel mix percentages per ISO
+  fuel_mix:
+    ERCOT:
+      natural_gas: 45
+      wind: 25
+      solar: 10
+      coal: 15
+      nuclear: 5
+    CAISO:
+      natural_gas: 35
+      wind: 15
+      solar: 25
+      coal: 2
+      nuclear: 8
+    PJM:
+      natural_gas: 35
+      wind: 10
+      solar: 5
+      coal: 25
+      nuclear: 25

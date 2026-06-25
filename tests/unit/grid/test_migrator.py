@@ -5,7 +5,8 @@ Uses temporary DuckDB database to avoid touching production data.
 
 import duckdb
 
-from tests.conftest import EXPECTED_SCHEMAS, MIGRATION_001
+from gridpace.grid.migrator import MIGRATIONS_DIR
+from tests.conftest import EXPECTED_SCHEMAS
 
 
 def test_migrations_table_created(temp_db):
@@ -74,11 +75,12 @@ def test_migrations_idempotent(temp_db):
 
     count = conn.execute("SELECT COUNT(*) FROM _migrations").fetchone()[0]
     conn.close()
-    assert count == 1
+    expected = len(list(MIGRATIONS_DIR.glob("*.sql")))
+    assert count == expected
 
 
 def test_migration_recorded(temp_db):
-    """Applied migration is recorded in _migrations table."""
+    """First applied migration is recorded in _migrations table."""
     from gridpace.grid.migrator import (
         _ensure_migrations_table,
         _get_applied_migrations,
@@ -98,6 +100,11 @@ def test_migration_recorded(temp_db):
             [migration_file.name]
         )
 
-    result = conn.execute("SELECT id FROM _migrations").fetchone()[0]
+    result = conn.execute(
+        "SELECT id FROM _migrations ORDER BY applied_at LIMIT 1"
+    ).fetchone()[0]
     conn.close()
-    assert result == MIGRATION_001
+
+    # First migration should be the lowest numbered file
+    first_migration = sorted(MIGRATIONS_DIR.glob("*.sql"))[0].name
+    assert result == first_migration

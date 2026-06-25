@@ -28,6 +28,17 @@ def get_connection() -> duckdb.DuckDBPyConnection:
     return duckdb.connect(str(DB_PATH))
 
 
+def _coalesce(row, *keys):
+    """Return first non-None value from row for given keys.
+    Handles zero values correctly — unlike 'or' chaining which treats 0 as falsy.
+    """
+    for key in keys:
+        val = row.get(key)
+        if val is not None:
+            return val
+    return None
+
+
 def write_bronze_lmp(df: pd.DataFrame, iso: str) -> int:
     """
     Write raw LMP data to bronze layer.
@@ -45,12 +56,12 @@ def write_bronze_lmp(df: pd.DataFrame, iso: str) -> int:
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             iso,
-            row.get("Interval Start") or row.get("time"),
-            row.get("Interval End"),
-            row.get("Location") or row.get("location"),
-            row.get("Location Type") or row.get("location_type"),
-            row.get("LMP") or row.get("lmp"),
-            row.get("Market") or row.get("market"),
+            _coalesce(row, "Interval Start", "time", "interval_start"),
+            _coalesce(row, "Interval End", "interval_end"),
+            _coalesce(row, "Location", "location"),
+            _coalesce(row, "Location Type", "location_type"),
+            _coalesce(row, "LMP", "lmp"),
+            _coalesce(row, "Market", "market"),
             json.dumps(row.to_dict(), default=str),
         ])
         rows_written += 1
@@ -75,13 +86,13 @@ def write_bronze_fuel_mix(df: pd.DataFrame, iso: str) -> int:
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             iso,
-            row.get("Time") or row.get("time"),
-            row.get("Natural Gas") or row.get("natural_gas") or 0.0,
-            row.get("Wind") or row.get("wind") or 0.0,
-            row.get("Solar") or row.get("solar") or 0.0,
-            row.get("Coal") or row.get("coal") or 0.0,
-            row.get("Nuclear") or row.get("nuclear") or 0.0,
-            row.get("Other") or row.get("other") or 0.0,
+            _coalesce(row, "Time", "time"),
+            _coalesce(row, "Natural Gas", "natural_gas") or 0.0,
+            _coalesce(row, "Wind", "wind") or 0.0,
+            _coalesce(row, "Solar", "solar") or 0.0,
+            _coalesce(row, "Coal", "coal") or 0.0,
+            _coalesce(row, "Nuclear", "nuclear") or 0.0,
+            _coalesce(row, "Other", "other") or 0.0,
             json.dumps(row.to_dict(), default=str),
         ])
         rows_written += 1
@@ -216,27 +227,34 @@ def compute_gold_iso_summary() -> int:
     conn = get_connection()
 
     conn.execute("""
-        INSERT INTO gold.iso_summary (
-            iso, window_start, window_end,
-            avg_lmp, max_lmp, min_lmp, renewable_pct
-        )
-        SELECT
-            l.iso,
-            date_trunc('hour', l.interval_start) AS window_start,
-            date_trunc('hour', l.interval_start) + INTERVAL '1 hour' AS window_end,
-            ROUND(AVG(l.lmp), 2) AS avg_lmp,
-            ROUND(MAX(l.lmp), 2) AS max_lmp,
-            ROUND(MIN(l.lmp), 2) AS min_lmp,
-            ROUND(AVG(f.renewable_pct), 2) AS renewable_pct
-        FROM silver.lmp l
-        LEFT JOIN silver.fuel_mix f
-            ON l.iso = f.iso
-            AND date_trunc('hour', l.interval_start) = date_trunc('hour', f.time)
-        WHERE (l.iso, date_trunc('hour', l.interval_start)) NOT IN (
-            SELECT iso, window_start FROM gold.iso_summary
-        )
-        GROUP BY l.iso, date_trunc('hour', l.interval_start)
-    """)
+            INSERT INTO gold.iso_summary (
+                iso, window_start, window_end,
+                avg_lmp, max_lmp, min_lmp, renewable_pct,
+                natural_gas, wind, solar, coal, nuclear, other
+            )
+            SELECT
+                l.iso,
+                date_trunc('hour', l.interval_start) AS window_start,
+                date_trunc('hour', l.interval_start) + INTERVAL '1 hour' AS window_end,
+                ROUND(AVG(l.lmp), 2) AS avg_lmp,
+                ROUND(MAX(l.lmp), 2) AS max_lmp,
+                ROUND(MIN(l.lmp), 2) AS min_lmp,
+                ROUND(AVG(f.renewable_pct), 2) AS renewable_pct,
+                ROUND(AVG(f.natural_gas), 2) AS natural_gas,
+                ROUND(AVG(f.wind), 2) AS wind,
+                ROUND(AVG(f.solar), 2) AS solar,
+                ROUND(AVG(f.coal), 2) AS coal,
+                ROUND(AVG(f.nuclear), 2) AS nuclear,
+                ROUND(AVG(f.other), 2) AS other
+            FROM silver.lmp l
+            LEFT JOIN silver.fuel_mix f
+                ON l.iso = f.iso
+                AND date_trunc('hour', l.interval_start) = date_trunc('hour', f.time)
+            WHERE (l.iso, date_trunc('hour', l.interval_start)) NOT IN (
+                SELECT iso, window_start FROM gold.iso_summary
+            )
+            GROUP BY l.iso, date_trunc('hour', l.interval_start)
+        """)
 
     rows = conn.execute("SELECT COUNT(*) FROM gold.iso_summary").fetchone()[0]
     conn.close()

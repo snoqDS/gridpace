@@ -23,3 +23,9 @@ mlflow:
 
 diagnostics:
 	uv run python scripts/diagnostics.py
+
+seed:
+	uv run python scripts/seed_db.py
+
+reseed:
+	uv run python scripts/seed_db.py --force

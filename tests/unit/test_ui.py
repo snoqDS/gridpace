@@ -1,7 +1,13 @@
 """
-Unit tests for Streamlit UI components.
-Uses streamlit testing utilities to test without a running server.
+Unit tests for Streamlit UI components and dashboard data loaders.
+Tests display logic, cache behavior, and schema validation.
+
+Scope: UI layer only — color mapping, status constants, cache error handling.
+Anomaly detection logic is tested in tests/unit/test_anomaly.py.
+Migration schema tests live here since they validate what the dashboard depends on.
 """
+
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -18,6 +24,12 @@ def sample_iso_summary():
         "max_lmp": [30.0, 55.0, 95.0],
         "min_lmp": [20.0, 35.0, 60.0],
         "renewable_pct": [35.0, 42.0, 28.0],
+        "natural_gas": [45.0, 35.0, 35.0],
+        "wind": [25.0, 15.0, 10.0],
+        "solar": [10.0, 25.0, 5.0],
+        "coal": [15.0, 2.0, 25.0],
+        "nuclear": [5.0, 8.0, 25.0],
+        "other": [0.0, 0.0, 0.0],
         "computed_at": pd.date_range("2026-01-01", periods=3, freq="h", tz="UTC"),
     })
 
@@ -46,12 +58,67 @@ def test_lmp_color_at_boundary():
     assert lmp_color(50.0) == "off"
 
 
+def test_status_emoji_has_all_levels():
+    """STATUS_EMOJI contains all five status levels."""
+    from gridpace.ui.components.iso_cards import STATUS_EMOJI
+    assert set(STATUS_EMOJI.keys()) == {"grey", "green", "yellow", "red", "critical"}
+
+
+def test_status_label_has_all_levels():
+    """STATUS_LABEL contains all five status levels."""
+    from gridpace.ui.components.iso_cards import STATUS_LABEL
+    assert set(STATUS_LABEL.keys()) == {"grey", "green", "yellow", "red", "critical"}
+
+
 def test_load_iso_summary_returns_none_on_empty_db():
     """load_iso_summary returns None gracefully when DB has no data."""
-    from unittest.mock import patch
     with patch("gridpace.grid.storage.get_connection") as mock_conn:
         mock_conn.side_effect = Exception("No database")
         from gridpace.ui.app import load_iso_summary
         load_iso_summary.clear()
         result = load_iso_summary()
         assert result is None
+
+
+def test_load_anomaly_results_returns_empty_dict_on_error():
+    """load_anomaly_results returns empty dict on error."""
+    with patch("gridpace.grid.storage.get_connection") as mock_conn:
+        mock_conn.side_effect = Exception("No database")
+        from gridpace.ui.app import load_anomaly_results
+        load_anomaly_results.clear()
+        result = load_anomaly_results()
+        assert result == {}
+
+
+def test_load_anomaly_results_returns_dict():
+    """load_anomaly_results returns a dict."""
+    from gridpace.ui.app import load_anomaly_results
+    load_anomaly_results.clear()
+    result = load_anomaly_results()
+    assert isinstance(result, dict)
+
+
+def test_migration_002_adds_fuel_columns():
+    """Migration 002 adds fuel mix columns to gold schema."""
+
+    import duckdb
+
+    from gridpace.grid.migrator import MIGRATIONS_DIR
+
+    conn = duckdb.connect(":memory:")
+
+    # Apply all migrations
+    for migration_file in sorted(MIGRATIONS_DIR.glob("*.sql")):
+        conn.execute(migration_file.read_text())
+
+    # Check fuel columns exist in gold.iso_summary
+    cols = conn.execute("""
+        SELECT column_name FROM information_schema.columns
+        WHERE table_schema = 'gold' AND table_name = 'iso_summary'
+    """).fetchall()
+    col_names = {c[0] for c in cols}
+
+    expected_fuel_cols = {"natural_gas", "wind", "solar", "coal", "nuclear", "other"}
+    assert expected_fuel_cols.issubset(col_names)
+    conn.close()
+

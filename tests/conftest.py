@@ -7,7 +7,6 @@ pytest loads this file automatically before any tests run.
 TEST_ISO = "ERCOT"
 
 # Migration constants
-MIGRATION_001 = "001_create_bronze_silver_gold.sql"
 EXPECTED_SCHEMAS = {"bronze", "silver", "gold"}
 
 # Sample data sizes — must match fixtures in tests/unit/grid/conftest.py

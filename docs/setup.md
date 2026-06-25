@@ -51,7 +51,8 @@ Open .env and fill in your API keys:
 
     GRIDSTATUS_API_KEY=your_key_here
 
-GridStatus is the only key required for Phase 1. The others are used in later future phases.
+GridStatus is the only key required for Phase 1. Additional keys will be added
+as new data sources are integrated in later phases.
 
 ## Initialize the Database
 
@@ -59,11 +60,18 @@ Run database migrations to create the bronze, silver, and gold schemas:
 
     uv run python -c "from gridpace.grid.migrator import run_migrations; run_migrations()"
 
-You should see:
+You should see output confirming each migration was applied.
 
-    Applying migration: 001_create_bronze_silver_gold.sql
-    Applied: 001_create_bronze_silver_gold.sql
-    Migrations complete. 1 migration(s) applied.
+After initializing, seed synthetic data for development:
+
+    make seed
+
+This generates 48 hours of synthetic LMP and fuel mix data per ISO, enabling
+anomaly detection baselines and dashboard testing without consuming API quota.
+
+To force reseed (clears existing data and regenerates):
+
+    make reseed
 
 ## Run the Pipeline
 
@@ -89,6 +97,24 @@ Then run the pipeline:
 
 Set dry_run back to true after verifying live data is working.
 
+## Seed Development Data
+
+The seed script populates DuckDB with synthetic historical data for development
+and testing. This enables anomaly detection baselines and dashboard testing
+without consuming GridStatus API quota.
+
+Seed parameters are configured in config/settings.yml under seed:
+
+    seed:
+      default_hours: 48
+      lmp_params:
+        ERCOT:
+          mean: 35.0
+          std: 12.0
+      ...
+
+Adjust these values to tune the synthetic data for your testing needs.
+
 ## Launch the Dashboard
 
     make run
@@ -96,10 +122,10 @@ Set dry_run back to true after verifying live data is working.
 This opens the GridPace dashboard at http://localhost:8501
 
 The dashboard reads from DuckDB and shows:
-- Current LMP prices per ISO
+- Current LMP prices per ISO with anomaly status indicators
+- Fuel mix breakdown per ISO
 - Renewable energy penetration
-- Last updated timestamp
-- Data gap status
+- Last updated timestamp and data window
 
 ## Run Tests
 
@@ -111,11 +137,11 @@ Run linting:
 
     make lint
 
-Run LLM evals (Phase 2 and beyond):
+Expected output: 75 tests passing, 2 skipped (integration tests).
+
+LLM evals are available in Phase 2 and beyond:
 
     make eval
-
-Expected output: 56 tests passing, 2 skipped (integration tests).
 
 ## Development Workflow
 
@@ -125,16 +151,35 @@ The recommended workflow for making changes:
 
     git checkout -b feat/your-feature-name
 
-2. Make changes and run tests:
+2. Make your changes.
+
+3. Run lint and fix any issues:
 
     make lint
+
+4. Run the full test suite:
+
     make test
 
-3. Commit using Conventional Commits format:
+5. Add tests for any new features or changed behavior.
 
-    git commit -m "feat: add new ISO client"
+6. If you changed the pipeline schema, run migrations and reseed:
 
-4. Push and open a pull request against main.
+    make reseed
+
+7. Update CHANGELOG.md with what changed.
+
+8. Update docs/architecture.md if architecture or key decisions changed.
+
+9. Update docs/setup.md if setup steps changed.
+
+10. Commit using Conventional Commits format:
+
+    git commit -m "feat: description of change"
+
+11. Push and verify CI is green:
+
+    git push origin main
 
 ## Troubleshooting
 
@@ -146,7 +191,11 @@ If you see schema errors, run migrations first:
 
 ### Dashboard shows no data
 
-Run the pipeline first to populate the database:
+Run the seed script first to populate the database:
+
+    make seed
+
+Or run the pipeline to fetch live data:
 
     uv run python -m gridpace.grid.flows
 

@@ -97,3 +97,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - config/settings.yml updated with dashboard and thresholds sections
+
+## [0.7.0] - 2026-06-24
+
+### Added
+- Phase 1: Anomaly detection, generation mix charts, seed script
+- intelligence/detection/anomaly.py with z-score statistical baselines per ISO
+- Five status levels (grey/green/yellow/red/critical) driven by config thresholds
+- scripts/seed_db.py contract-driven synthetic data generator
+- Migration 002 adds fuel mix columns to gold.iso_summary
+- Donut charts per ISO showing fuel mix breakdown
+- Tab structure in dashboard (Live Conditions, Price Analytics, Nodal Analysis, Correlations)
+- 48-hour min/max range in ISO cards
+- Cache auto-invalidation on schema mismatch
+- 19 new tests (75 total passing)
+
+### Changed
+- load_iso_summary() queries 48h min/max from gold history
+- ISO cards show anomaly status indicators with z-scores
+- Migrator tests now dynamic — no hardcoded migration counts or names
+- MIGRATION_001 constant removed from test conftest

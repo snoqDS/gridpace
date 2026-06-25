@@ -37,7 +37,10 @@ Current state:
     grid/flows.py                    (Prefect orchestration, parallel ISO fetching)
           |
           v
-    ui/app.py                        (Streamlit dashboard, live ISO price cards)
+    intelligence/detection/anomaly.py (z-score statistical baselines per ISO)
+          |
+          v
+    ui/app.py                        (Streamlit dashboard, tabs, ISO cards, donuts)
 
 Target state (full pipeline):
 
@@ -85,6 +88,13 @@ functions. Tasks retry twice on failure with 30-second delays. ISOs fetch in
 parallel via task futures. get_run_logger() removed from tasks — structlog handles
 all logging to avoid Prefect context requirements in tests. Tasks tested via .fn()
 which bypasses Prefect context and calls the underlying Python function directly.
+
+Anomaly detection: Statistical z-score baselines computed per ISO from gold layer
+history. Requires minimum 5 data points before producing a status. Returns grey
+status when insufficient history exists. Five status levels: grey, green, yellow,
+red, critical. Thresholds configured in config/settings.yml under anomaly:
+Designed for sustained anomalies only — 2-hour polling resolution cannot detect
+transient price spikes.
 
 ## Phase 2: Agentic Narrative Layer (Planned)
 
@@ -163,7 +173,15 @@ GridPace uses a three-layer test structure:
         └── ...
 
 Shared constants live in tests/conftest.py:
-    TEST_ISO, SAMPLE_ROWS, MIGRATION_001, EXPECTED_SCHEMAS
+    TEST_ISO, SAMPLE_ROWS, EXPECTED_SCHEMAS
+
+Test scope boundaries:
+    test_anomaly.py — statistical detection logic only, no UI or DB dependencies
+    test_ui.py — display layer, cache behavior, schema validation
+    test_flows.py — Prefect task behavior with mocked dependencies
+    test_storage.py — DuckDB read/write with isolated temp databases
+    test_transformers.py — pure data transformation functions
+    test_validation.py — contract enforcement logic
 
 Flow tasks tested via .fn() to bypass Prefect context requirements.
 Integration tests skipped in CI — run manually to verify live API connectivity.
