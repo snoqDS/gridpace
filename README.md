@@ -1,105 +1,74 @@
 # GridPace
 
-Real-time grid intelligence with historical context.
+Real-time grid intelligence dashboard for US ISO/RTO markets.
 
-GridPace monitors ISO/RTO grid conditions across major US markets, detects stress events and anomalies, generates plain-English situation reports via an agentic reasoning loop, and finds similar historical events using vector search over a time-series event database.
+GridPace monitors live grid conditions across ERCOT, CAISO, and PJM — tracking
+LMP prices, generation fuel mix, renewable penetration, and statistical anomalies.
+Built with a production-grade data pipeline and an extensible architecture for
+agentic narrative generation and historical analog retrieval in future phases.
 
-## Features
+## Current State
 
-- Real-time grid monitoring across multiple ISOs (ERCOT, CAISO, PJM)
-- Price spike and reserve margin stress detection
-- Renewable penetration analysis vs seasonal baselines
-- Agentic narrative generation explaining current grid conditions
-- Historical analog retrieval using vector similarity search
-- Medallion data architecture (bronze, silver, gold)
-- Streamlit dashboard with live updates
-- Structured logging and health monitoring
+Phase 1 is complete. The dashboard is live and showing real grid data.
 
-## Data Sources
-
-- GridStatus — real-time LMP prices, generation mix, reserve margins
-- EIA Grid Monitor — generation and demand data
-- WattTime — marginal carbon emissions by balancing authority
-- Ember API — historical generation mix and carbon intensity
-- Weather: TBD
-
-## Tech Stack
-
-- Python 3.11, uv
-- LangGraph — agentic reasoning and multi-step planning
-- DuckDB — bronze/silver/gold analytical warehouse
-- FAISS + sentence-transformers — vector search for historical analogs
-- Streamlit — live dashboard
-- Pyomo + HiGHS — dispatch optimization
-- MLflow — experiment tracking
-- Ruff, pytest, GitHub Actions CI
-
-## Installation
-
-Clone the repository:
-
-    git clone https://github.com/snoqDS/gridpace.git
-    cd gridpace
-
-Install uv if not already installed:
-
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-
-Install dependencies:
-
-    uv sync
-
-Copy the environment file and add your API keys:
-
-    cp .env.example .env
-
-See [docs/setup.md](docs/setup.md) for detailed setup instructions including API key signup and first run walkthrough.
-
-Run the dashboard:
-
-    make run
+- Real-time LMP price monitoring across ERCOT, CAISO, and PJM
+- Statistical anomaly detection with z-score baselines per ISO
+- Generation fuel mix breakdown with donut charts
+- Medallion data architecture (bronze, silver, gold) via DuckDB
+- Prefect orchestration with parallel ISO fetching
+- Streamlit dashboard with tab structure for future analytics
 
 ## Quick Start
 
-    # Run the dashboard
-    make run
+    git clone https://github.com/snoqDS/gridpace.git
+    cd gridpace
+    uv sync
+    cp .env.example .env       # add your GridStatus API key
+    make seed                  # populate with synthetic data
+    make run                   # open dashboard at localhost:8501
 
-    # Run tests
-    make test
+See [docs/setup.md](docs/setup.md) for full setup instructions including
+API key signup, live data configuration, and troubleshooting.
 
-    # Run LLM evals
-    make eval
+## Commands
 
-    # Run linter
-    make lint
+    make run          # launch dashboard
+    make test         # run test suite (75 tests)
+    make lint         # run ruff linter
+    make seed         # populate DB with synthetic data
+    make reseed       # clear and regenerate synthetic data
 
-    # Format code
-    make format
+## Architecture
 
-    # Launch MLflow tracking UI
-    make mlflow
+See [docs/architecture.md](docs/architecture.md) for full architecture
+documentation including data flow, key decisions, security model, and
+future considerations.
 
-    # Run system diagnostics
-    make diagnostics
+## Data Sources
 
-    # Live demo: <Phase 1 — coming soon>
+Phase 1: GridStatus (real-time LMP and fuel mix, free tier)
+Phase 2+: EIA Grid Monitor, WattTime, Ember API
 
 ## Roadmap
 
 - [x] Phase 0: Production-grade repo scaffolding
-- [ ] Phase 1: Live grid dashboard with real-time ISO data
+- [x] Phase 1: Live grid dashboard with anomaly detection
 - [ ] Phase 2: Agentic narrative layer with LangGraph
 - [ ] Phase 3: Historical analog engine with vector search
+- [ ] Phase 4: Polish, Dockerfile, live demo
+
+## Tech Stack
+
+Python 3.11, uv, DuckDB, Prefect, Streamlit, structlog, Ruff, pytest,
+GitHub Actions CI. Phase 2+ adds LangGraph, FAISS, sentence-transformers,
+Pyomo, MLflow.
 
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE) for details.
-
 Copyright 2026 Philip Regulski
 
 ## Contact
 
 - GitHub: [snoqDS](https://github.com/snoqDS)
 - LinkedIn: [philregulski](https://www.linkedin.com/in/philregulski/)
-
-
