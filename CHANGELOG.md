@@ -117,3 +117,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - ISO cards show anomaly status indicators with z-scores
 - Migrator tests now dynamic — no hardcoded migration counts or names
 - MIGRATION_001 constant removed from test conftest
+
+## [0.8.0] - 2026-06-24
+
+### Added
+- pip-audit dependency vulnerability scanning in CI
+- docs/security.md vulnerability tracking log with severity levels
+- Security audit step in GitHub Actions CI pipeline
+
+### Changed
+- Removed mlflow 1.27.0 (73 CVEs, pandas>=3 conflict) — will re-add in Phase 3
+- Updated langsmith 0.8.17 → 0.9.2 (1 CVE resolved)
+- Updated pydantic-settings 2.14.1 → 2.14.2 (1 CVE resolved)
+- docs/architecture.md references security.md

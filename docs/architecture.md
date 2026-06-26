@@ -203,6 +203,9 @@ Run integration tests manually: uv run pytest tests/integration/ -v
 
 ## Security
 
+See docs/security.md for the full vulnerability tracking log and dependency
+update policy. pip-audit runs in CI on every push.
+
 ### API Key Management
 
 All secrets loaded from .env via pydantic-settings. Never committed to Git.

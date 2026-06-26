@@ -1,11 +1,9 @@
 name: CI
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,5 +17,7 @@ jobs:
         run: uv sync --all-groups
       - name: Lint
         run: uv run ruff check src/ tests/
+      - name: Security audit
+        run: uv run pip-audit
       - name: Test
         run: uv run pytest tests/ -v
