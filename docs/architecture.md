@@ -2,7 +2,7 @@
 
 ## Overview
 
-GridPace is a real time grid intelligence platform built in four phases.
+GridPace is a real time grid intelligence platform built across five phases.
 
 For setup instructions see docs/setup.md.
 
@@ -47,25 +47,25 @@ Target state (full pipeline):
     GridStatus API
           |
           v
-    grid/clients/gridstatus.py   (fetch)
+    grid/clients/gridstatus.py       (fetch)
           |
           v
-    grid/validation.py           (schema contract check, Phase 1)
+    grid/validation.py               (schema contract check)
           |
           v
-    grid/storage.py              (DuckDB bronze layer)
+    grid/storage.py                  (DuckDB bronze layer)
           |
           v
-    grid/storage.py              (silver and gold transforms)
+    grid/storage.py                  (silver and gold transforms)
           |
           v
-    intelligence/agents/graph.py (LangGraph narrative agent, Phase 2)
+    intelligence/agents/graph.py     (LangGraph narrative agent, Phase 2)
           |
           v
-    intelligence/retrieval/      (historical analog search, Phase 3)
+    intelligence/retrieval/          (historical analog search, Phase 3)
           |
           v
-    ui/app.py                    (Streamlit dashboard)
+    ui/app.py                        (Streamlit dashboard)
 
 ### Key Decisions
 
@@ -85,15 +85,15 @@ not a design flaw.
 
 Pipeline orchestration: Prefect @flow and @task decorators wrap existing pipeline
 functions. Tasks retry twice on failure with 30-second delays. ISOs fetch in
-parallel via task futures. get_run_logger() removed from tasks — structlog handles
-all logging to avoid Prefect context requirements in tests. Tasks tested via .fn()
-which bypasses Prefect context and calls the underlying Python function directly.
+parallel via task futures. structlog handles all logging throughout the pipeline.
+Tasks tested via .fn() which bypasses Prefect context and calls the underlying
+Python function directly.
 
 Anomaly detection: Statistical z-score baselines computed per ISO from gold layer
 history. Requires minimum 5 data points before producing a status. Returns grey
 status when insufficient history exists. Five status levels: grey, green, yellow,
-red, critical. Thresholds configured in config/settings.yml under anomaly:
-Designed for sustained anomalies only — 2-hour polling resolution cannot detect
+red, critical. Thresholds configured in config/settings.yml under anomaly.
+Designed for sustained anomalies only as 2-hour polling resolution cannot detect
 transient price spikes.
 
 ## Phase 2: Agentic Narrative Layer (Planned)
@@ -101,32 +101,59 @@ transient price spikes.
 LangGraph state machine with observe, diagnose, explain, and publish nodes.
 Tools call GridStatus, WattTime, and Ember APIs.
 Narrative generation via configurable LLM provider (Ollama, HuggingFace, or Anthropic).
+Produces plain-English situation reports explaining current grid conditions
+to operators and market participants.
 
 ## Phase 3: Historical Analog Engine (Planned)
 
 FAISS vector store over historical grid events with sentence transformer embeddings.
-Retrieval augmented generation over time series event database.
+Retrieval augmented generation over a time series event database.
 Historical events sourced from EIA, GridStatus history, and Catalyst Cooperative PUDL.
+Enables contextual comparisons such as identifying that current conditions
+resemble a prior event where prices spiked significantly within hours.
+
+## Phase 4: Real-Time Dispatch Support (Planned)
+
+Designed for battery storage operators making short-term dispatch decisions.
+Requires a paid GridStatus tier for node-level LMP and 5-minute resolution.
+
+    Node-level LMP at key pricing hubs (ERCOT HB_NORTH/SOUTH/WEST/HOUSTON,
+    CAISO SP15/NP15/ZP26, PJM Western/Eastern Hub)
+    Day-ahead vs real-time price spread
+    4-hour ahead renewable generation forecast
+    Ancillary services prices (ERCOT ECRS, CAISO REGUP/REGDN)
+    Reserve margin alerts
+    Marginal carbon emissions via WattTime integration
+    Negative price detection for optimal battery charging windows
+
+## Phase 5: Long-Term Project Developer Analysis (Planned)
+
+Designed for developers and investors evaluating storage and renewable projects.
+
+    Merchant revenue stacking analysis
+    Capacity factor projections by technology and region
+    IRA incentive optimization (ITC, PTC, storage adder)
+    Interconnection queue analysis
+    Multi-year price forecasting
 
 ## Tech Stack
 
-    Layer              Technology
-    ----------------   ---------------------------
-    Package manager    uv
-    Language           Python 3.11
-    Data ingestion     gridstatus, httpx, requests
-    Storage            DuckDB (bronze/silver/gold)
-    Scheduling         Prefect (pipeline orchestration)
-    Agent framework    LangGraph 1.0
-    Vector store       FAISS + sentence-transformers
-    LLM providers      Ollama, HuggingFace, Anthropic
-    Dashboard          Streamlit
-    Optimization       Pyomo + HiGHS
-    Experiment tracking MLflow
-    Logging            structlog
-    Linting            Ruff
-    Testing            pytest
-    CI/CD              GitHub Actions
+    Layer                  Technology
+    --------------------   ---------------------------
+    Package manager        uv
+    Language               Python 3.11
+    Data ingestion         gridstatus, httpx, requests
+    Storage                DuckDB (bronze/silver/gold)
+    Scheduling             Prefect (pipeline orchestration)
+    Agent framework        LangGraph 1.0 (Phase 2)
+    Vector store           FAISS + sentence-transformers (Phase 3)
+    LLM providers          Ollama, HuggingFace, Anthropic (Phase 2)
+    Dashboard              Streamlit
+    Optimization           Pyomo + HiGHS
+    Logging                structlog
+    Linting                Ruff
+    Testing                pytest
+    CI/CD                  GitHub Actions
 
 ## Configuration
 
@@ -176,15 +203,15 @@ Shared constants live in tests/conftest.py:
     TEST_ISO, SAMPLE_ROWS, EXPECTED_SCHEMAS
 
 Test scope boundaries:
-    test_anomaly.py — statistical detection logic only, no UI or DB dependencies
-    test_ui.py — display layer, cache behavior, schema validation
-    test_flows.py — Prefect task behavior with mocked dependencies
-    test_storage.py — DuckDB read/write with isolated temp databases
-    test_transformers.py — pure data transformation functions
-    test_validation.py — contract enforcement logic
+    test_anomaly.py    statistical detection logic only, no UI or DB dependencies
+    test_ui.py         display layer, cache behavior, schema validation
+    test_flows.py      Prefect task behavior with mocked dependencies
+    test_storage.py    DuckDB read/write with isolated temp databases
+    test_transformers.py   pure data transformation functions
+    test_validation.py     contract enforcement logic
 
 Flow tasks tested via .fn() to bypass Prefect context requirements.
-Integration tests skipped in CI — run manually to verify live API connectivity.
+Integration tests skipped in CI and run manually to verify live API connectivity.
 
 Shared fixtures live in tests/unit/grid/conftest.py:
     temp_db, initialized_db, sample_lmp_df, sample_fuel_mix_df
@@ -214,7 +241,9 @@ See .env.example for required keys.
 
 ### Dependency Scanning
 
-pip-audit is planned for CI integration to check for known CVEs in dependencies.
+pip-audit runs in CI on every push to check for known CVEs in dependencies.
+Build fails if any vulnerability is found. See docs/security.md for the
+vulnerability tracking log and remediation policy.
 
 ### Agent Security Model (Phase 2)
 
@@ -235,11 +264,6 @@ Level 3: No code execution tools
 Prompt injection risk is mitigated by structured tool outputs rather than
 passing raw external text directly to the LLM reasoning loop.
 
-### Containerization (Phase 4)
-
-Dockerfile and docker-compose.yml filled in during Phase 4.
-Production deployments run in isolated containers with explicit network rules.
-
 ## Future Considerations
 
 Scale out storage: DuckDB handles gigabytes easily on a single machine.
@@ -258,6 +282,17 @@ database backend changes to PostgreSQL or another SQLAlchemy compatible database
 Auto generated documentation: Generate docs from code using Sphinx or mkdocs
 rather than maintaining markdown files manually.
 
-Infrastructure as code: Cloud resources and deployment configuration 
-should be defined in code using Terraform or Pulumi for reproducible 
-environment setup across dev, staging, and production.
+Infrastructure as code: Cloud resources and deployment configuration should be
+defined in code using Terraform or Pulumi for reproducible environment setup
+across dev, staging, and production.
+
+Production deployment: Before any production deployment, fill in the Dockerfile
+and docker-compose.yml placeholders. Production deployments should run in
+isolated containers with explicit network rules. A dedicated Prefect worker
+running on a cloud VM ensures always-on data collection independent of local
+machine uptime. See docs/security.md for the security model that governs
+production deployments.
+
+MLflow: Planned for Phase 3 experiment tracking. Removed from Phase 1
+dependencies due to incompatibility with pandas>=3. Will be re-added when
+pandas compatibility is resolved.

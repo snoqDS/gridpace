@@ -51,11 +51,14 @@ Phase 2+: EIA Grid Monitor, WattTime, Ember API
 
 ## Roadmap
 
-- [x] Phase 0: Production-grade repo scaffolding
+- [x] Phase 0: Repo scaffolding
 - [x] Phase 1: Live grid dashboard with anomaly detection
 - [ ] Phase 2: Agentic narrative layer with LangGraph
 - [ ] Phase 3: Historical analog engine with vector search
-- [ ] Phase 4: Polish, Dockerfile, live demo
+- [ ] Phase 4: Real-time dispatch support for battery operators
+- [ ] Phase 5: Long-term project developer analysis
+
+See [docs/architecture.md](docs/architecture.md) for full phase descriptions.
 
 ## Tech Stack
 
