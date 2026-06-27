@@ -29,3 +29,6 @@ seed:
 
 reseed:
 	uv run python scripts/seed_db.py --force
+
+seed-week:
+	uv run python scripts/seed_db.py --hours 168 --force

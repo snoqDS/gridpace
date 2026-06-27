@@ -65,7 +65,9 @@ Target state (full pipeline):
     intelligence/retrieval/          (historical analog search, Phase 3)
           |
           v
-    ui/app.py                        (Streamlit dashboard)
+    ui/app.py                        (Streamlit dashboard, tabs, ISO cards, donuts,
+                                      Price Analytics with histogram/CDF/box plots/spread,
+                                      generation mix time series, date range slider)
 
 ### Key Decisions
 
@@ -95,6 +97,11 @@ status when insufficient history exists. Five status levels: grey, green, yellow
 red, critical. Thresholds configured in config/settings.yml under anomaly.
 Designed for sustained anomalies only as 2-hour polling resolution cannot detect
 transient price spikes.
+
+Dashboard analytics: Price Analytics tab provides interactive price distribution
+analysis (histogram, CDF, box plots, spread) and generation mix time series.
+All charts controlled by a single UTC date range slider. ISO cards display
+local time per ISO timezone for operator readability.
 
 ## Phase 2: Agentic Narrative Layer (Planned)
 

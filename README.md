@@ -33,10 +33,11 @@ API key signup, live data configuration, and troubleshooting.
 ## Commands
 
     make run          # launch dashboard
-    make test         # run test suite (75 tests)
+    make test         # run test suite (79 tests)
     make lint         # run ruff linter
-    make seed         # populate DB with synthetic data
-    make reseed       # clear and regenerate synthetic data
+    make seed         # populate DB with 48h synthetic data
+    make seed-week    # populate DB with 168h synthetic data (recommended)
+    make reseed       # clear and regenerate 48h synthetic data
 
 ## Architecture
 

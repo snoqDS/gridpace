@@ -130,3 +130,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated langsmith 0.8.17 → 0.9.2 (1 CVE resolved)
 - Updated pydantic-settings 2.14.1 → 2.14.2 (1 CVE resolved)
 - docs/architecture.md references security.md
+
+## [0.9.0] - 2026-06-27
+
+### Added
+- Price Analytics tab with interactive date range slider (UTC)
+- LMP price histogram with grouped bars per ISO
+- Cumulative distribution function (CDF) chart overlaid per ISO
+- Box plots per ISO showing median, IQR, whiskers, outliers
+- Price spread chart (Q0.75 minus Q0.25) per ISO with metrics
+- Generation mix time series stacked bar charts per ISO
+- ISO timezone mapping for local time display on cards
+- seed-week Makefile target for 168 hours of synthetic data
+- load_iso_summary_history() for full history with fuel columns
+- 4 new tests (79 total passing)
+
+### Changed
+- ISO cards show local time window per ISO timezone
+- Min/Max labels include lookback hours for clarity
+- Current LMP and Renewable labeled as latest hour
+- All Price Analytics charts controlled by single date range slider
+- load_iso_history() and load_iso_summary_history() fetch all available history
+- seed default_hours updated to 168 in config/settings.yml

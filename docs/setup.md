@@ -66,7 +66,11 @@ After initializing, seed synthetic data for development:
 
     make seed
 
-This generates 48 hours of synthetic LMP and fuel mix data per ISO, enabling
+For a full week of synthetic data (recommended for Price Analytics charts):
+
+    make seed-week
+
+This generates 168 hours of synthetic LMP and fuel mix data per ISO, enabling
 anomaly detection baselines and dashboard testing without consuming API quota.
 
 To force reseed (clears existing data and regenerates):
@@ -103,10 +107,14 @@ The seed script populates DuckDB with synthetic historical data for development
 and testing. This enables anomaly detection baselines and dashboard testing
 without consuming GridStatus API quota.
 
+    make seed              # 48 hours of synthetic data
+    make seed-week         # 168 hours — recommended for Price Analytics
+    make reseed            # clear and regenerate 48h data
+
 Seed parameters are configured in config/settings.yml under seed:
 
     seed:
-      default_hours: 48
+      default_hours: 168
       lmp_params:
         ERCOT:
           mean: 35.0
@@ -137,7 +145,7 @@ Run linting:
 
     make lint
 
-Expected output: 75 tests passing, 2 skipped (integration tests).
+Expected output: 79 tests passing, 2 skipped (integration tests).
 
 LLM evals are available in Phase 2 and beyond:
 

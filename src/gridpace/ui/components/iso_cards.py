@@ -24,6 +24,16 @@ STATUS_LABEL = {
     "critical": "Critical",
 }
 
+ISO_TIMEZONES = {
+    "ERCOT": "America/Chicago",
+    "CAISO": "America/Los_Angeles",
+    "PJM": "America/New_York",
+    "MISO": "America/Chicago",
+    "SPP": "America/Chicago",
+    "NYISO": "America/New_York",
+    "ISONE": "America/New_York",
+}
+
 
 def lmp_color(avg_lmp: float) -> str:
     """
@@ -135,27 +145,37 @@ def render_iso_cards(df: pd.DataFrame, anomaly_results: dict = None) -> None:
             st.caption(f"Status: {label}" + (f" (z={z_score:.2f})" if z_score is not None else ""))
 
             st.metric(
-                label="Avg LMP ($/MWh)",
+                label="Current LMP ($/MWh)",
                 value=f"${iso_data['avg_lmp']:.2f}",
             )
 
+            lookback = app_config["dashboard"]["lookback_hours"]
             col1, col2 = st.columns(2)
             with col1:
-                st.metric(label="Min", value=f"${iso_data['min_lmp']:.2f}")
+                st.metric(label=f"{lookback}h Min", value=f"${iso_data['min_lmp']:.2f}")
             with col2:
-                st.metric(label="Max", value=f"${iso_data['max_lmp']:.2f}")
+                st.metric(label=f"{lookback}h Max", value=f"${iso_data['max_lmp']:.2f}")
 
             renewable = iso_data.get("renewable_pct")
             if renewable is not None:
-                st.metric(label="Renewable %", value=f"{renewable:.1f}%")
+                st.metric(label="Current Renewable %", value=f"{renewable:.1f}%")
 
             st.divider()
 
-            # Time frame context
+            # Unified time frame context for metrics and donut
             window_end = iso_data.get("window_end")
             if window_end is not None:
-                lookback = app_config["dashboard"]["lookback_hours"]
-                st.caption(f"Last {lookback}h ending {pd.Timestamp(window_end).strftime('%Y-%m-%d %H:%M UTC')}")   
+                end_ts = pd.Timestamp(window_end)
+                start_ts = end_ts - pd.Timedelta(hours=lookback)
+                tz_name = ISO_TIMEZONES.get(iso, "UTC")
+                local_end = end_ts.tz_convert(tz_name)
+                local_start = start_ts.tz_convert(tz_name)
+                tz_abbr = local_end.strftime("%Z")
+                st.caption(
+                    f"Window: {local_start.strftime('%b %d %I:%M%p')} to {local_end.strftime('%b %d %I:%M%p')} {tz_abbr}"
+                )
+                st.caption("Current LMP and Renewable % = latest hour only")
+
             # Fuel mix donut
             render_fuel_mix_donut(iso_data, iso)
 

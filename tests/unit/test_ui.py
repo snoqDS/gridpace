@@ -12,6 +12,8 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
+from gridpace.config import app_config
+
 
 @pytest.fixture
 def sample_iso_summary():
@@ -122,3 +124,33 @@ def test_migration_002_adds_fuel_columns():
     assert expected_fuel_cols.issubset(col_names)
     conn.close()
 
+def test_iso_timezones_covers_configured_isos():
+    """All configured ISOs have a timezone entry."""
+    from gridpace.ui.components.iso_cards import ISO_TIMEZONES
+    isos = app_config["isos"]
+    for iso in isos:
+        assert iso in ISO_TIMEZONES, f"ISO {iso} missing from ISO_TIMEZONES"
+
+
+def test_get_iso_color_known_iso():
+    """Known ISO returns a color string."""
+    from gridpace.ui.components.price_charts import _get_iso_color
+    color = _get_iso_color("ERCOT")
+    assert color.startswith("#")
+
+
+def test_get_iso_color_unknown_iso():
+    """Unknown ISO returns fallback grey color."""
+    from gridpace.ui.components.price_charts import _get_iso_color
+    color = _get_iso_color("UNKNOWN_ISO")
+    assert color == "#adb5bd"
+
+
+def test_load_iso_summary_history_returns_none_on_error():
+    """load_iso_summary_history returns None gracefully on error."""
+    with patch("gridpace.grid.storage.get_connection") as mock_conn:
+        mock_conn.side_effect = Exception("No database")
+        from gridpace.ui.app import load_iso_summary_history
+        load_iso_summary_history.clear()
+        result = load_iso_summary_history()
+        assert result is None

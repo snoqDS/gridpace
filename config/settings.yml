@@ -86,7 +86,7 @@ anomaly:
 # Adjust these to generate more realistic data for your region/timeframe
 # ---------------------------------------------------------------------------
 seed:
-  default_hours: 48   # hours of synthetic history to generate by default
+  default_hours: 168   # hours of synthetic history to generate by default
 
   # LMP price distributions per ISO (mean and std in $/MWh)
   # Based on approximate historical averages
