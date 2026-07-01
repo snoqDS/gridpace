@@ -71,19 +71,19 @@ Target state (full pipeline):
 
 ### Key Decisions
 
-Poll interval set to 120 minutes on free tier. Configurable in config/settings.yml.
-dry_run mode returns sample data during development. No API quota consumed.
+Poll interval set to 5 minutes for local real-time system. Configurable in config/settings.yml.
+gridstatus open-source library pulls directly from ISO public portals with no request limits.
+dry_run mode returns sample data during development. No live ISO API calls are made.
 DuckDB serves as the local analytical warehouse. Dashboard reads from DuckDB, not live API.
-Integration tests skipped in CI to preserve API quota. Run manually to verify live connectivity.
+Integration tests skipped in CI to avoid live ISO API calls during automated builds.
+Run manually to verify live connectivity.
 
-Polling resolution: GridStatus free tier allows 250 API requests per month.
-To stay within this limit, the pipeline polls every 120 minutes by default,
-configurable in config/settings.yml. Price spikes typically last 5 to 30
-minutes and will not be captured at this resolution. Anomaly detection is
-designed for sustained conditions only, not transient price spikes.
-Production deployment with a paid GridStatus tier would enable 5-minute
-polling and real-time spike detection. This is a documented constraint,
-not a design flaw.
+Polling resolution: GridPace uses the gridstatus open-source library (version
+0.34.0) which pulls data directly from ISO public portals (CAISO OASIS, ERCOT
+public API, PJM Data Miner) with no request limits. This is distinct from the
+paid gridstatusio API which has a 250 request/month free tier limit. The local
+real-time system polls every 5 minutes, matching native ISO SCED resolution.
+Price spikes lasting 5 minutes or longer are detectable at this resolution.
 
 Pipeline orchestration: Prefect @flow and @task decorators wrap existing pipeline
 functions. Tasks retry twice on failure with 30-second delays. ISOs fetch in
@@ -95,8 +95,8 @@ Anomaly detection: Statistical z-score baselines computed per ISO from gold laye
 history. Requires minimum 5 data points before producing a status. Returns grey
 status when insufficient history exists. Five status levels: grey, green, yellow,
 red, critical. Thresholds configured in config/settings.yml under anomaly.
-Designed for sustained anomalies only as 2-hour polling resolution cannot detect
-transient price spikes.
+Designed for sustained anomalies only. At 5-minute polling resolution, spikes
+lasting 5 minutes or longer are detectable.
 
 Dashboard analytics: Price Analytics tab provides interactive price distribution
 analysis (histogram, CDF, box plots, spread) and generation mix time series.
@@ -122,7 +122,8 @@ resemble a prior event where prices spiked significantly within hours.
 ## Phase 4: Real-Time Dispatch Support (Planned)
 
 Designed for battery storage operators making short-term dispatch decisions.
-Requires a paid GridStatus tier for node-level LMP and 5-minute resolution.
+Node-level LMP requires specifying specific pricing nodes in gridstatus queries.
+5-minute resolution is already available via the open-source library.
 
     Node-level LMP at key pricing hubs (ERCOT HB_NORTH/SOUTH/WEST/HOUSTON,
     CAISO SP15/NP15/ZP26, PJM Western/Eastern Hub)
@@ -303,3 +304,16 @@ production deployments.
 MLflow: Planned for Phase 3 experiment tracking. Removed from Phase 1
 dependencies due to incompatibility with pandas>=3. Will be re-added when
 pandas compatibility is resolved.
+
+ISO selector: Dashboard sidebar will support ON/OFF toggles for all 9 supported
+ISOs (ERCOT, CAISO, PJM, MISO, SPP, NYISO, ISONE, IESO, AESO). All charts and
+cards filter dynamically by selected ISOs.
+
+Storage management: Configurable size caps per medallion layer (bronze, silver, gold)
+with both time-based and size-based age-off triggers. Aged-off bronze exports to
+Parquet for archival. Dashboard sidebar shows DB size per layer with alerts at cap.
+
+Deployment modes: Local real-time system polls every 5 minutes with full 9-ISO
+coverage. Public demo deployment uses Streamlit Community Cloud with seeded
+historical data. Production always-on path uses Cloudflare R2 (10GB free) plus
+GCP e2-micro VM for the pipeline worker.

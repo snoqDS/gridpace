@@ -28,26 +28,28 @@ Schema contracts defined in:
 
 LMP (Locational Marginal Prices)
   Endpoint: iso.get_lmp(date="latest")
-  Native resolution: 5-minute SCED intervals from GridStatus
+  Native resolution: 5-minute SCED intervals from ISO public portals
   Effective poll interval: Configured in config/settings.yml under
-    ingestion.poll_interval_minutes (currently 120 minutes on free tier).
-    Native 5-minute resolution requires a paid GridStatus tier.
-    See docs/architecture.md Key Decisions for full polling constraint rationale.
+    ingestion.poll_interval_minutes (default 5 minutes).
+    gridstatus open-source library has no request limits — pulls directly
+    from CAISO OASIS, ERCOT public API, and PJM Data Miner.
   ISOs: Configured in config/settings.yml under isos:
   Key fields: Interval Start, Interval End, Location, Location Type, LMP
 
 Fuel Mix (Generation by Fuel Type)
   Endpoint: iso.get_fuel_mix(date="latest")
-  Native resolution: Varies by ISO
-  Effective poll interval: Matches ingestion.poll_interval_minutes in config/settings.yml.
-  ISOs: Configured in config/settings.yml under isos:
+  Native resolution: 5-minute intervals for most ISOs, varies by market
+  Effective poll interval: Configured in config/settings.yml under
+    ingestion.poll_interval_minutes (default 5 minutes).  ISOs: Configured in config/settings.yml under isos:
   Key fields: time, natural_gas, wind, solar, coal, nuclear
 
-### API Limits (Free Tier)
+### API Limits
 
-  250 requests per month
-  500,000 rows per month
-  Poll interval: 120 minutes (configurable in config/settings.yml)
+  gridstatus open-source library pulls directly from ISO public portals.
+  No request limits apply — this is not the paid gridstatusio API.
+  Poll interval: 5 minutes for local real-time system (configurable in
+  config/settings.yml under ingestion.poll_interval_minutes).
+  Native ISO resolution: 5-minute SCED intervals for LMP data.
 
 ### Notes
 

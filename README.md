@@ -9,9 +9,9 @@ agentic narrative generation and historical analog retrieval in future phases.
 
 ## Current State
 
-Phase 1 is complete. The dashboard is live and showing real grid data.
+Phase 1 is in progress. The dashboard is running locally with synthetic data.
 
-- Real-time LMP price monitoring across ERCOT, CAISO, and PJM
+- LMP price monitoring across ERCOT, CAISO, and PJM (9 ISOs planned)
 - Statistical anomaly detection with z-score baselines per ISO
 - Generation fuel mix breakdown with donut charts
 - Medallion data architecture (bronze, silver, gold) via DuckDB
@@ -23,12 +23,12 @@ Phase 1 is complete. The dashboard is live and showing real grid data.
     git clone https://github.com/snoqDS/gridpace.git
     cd gridpace
     uv sync
-    cp .env.example .env       # add your GridStatus API key
+    cp .env.example .env       # no API key required for Phase 1
     make seed                  # populate with synthetic data
     make run                   # open dashboard at localhost:8501
 
 See [docs/setup.md](docs/setup.md) for full setup instructions including
-API key signup, live data configuration, and troubleshooting.
+live data configuration, and troubleshooting.
 
 ## Commands
 
@@ -47,13 +47,13 @@ future considerations.
 
 ## Data Sources
 
-Phase 1: GridStatus (real-time LMP and fuel mix, free tier)
+Phase 1: gridstatus open-source library (pulls directly from ISO public portals, no API key, no limits)
 Phase 2+: EIA Grid Monitor, WattTime, Ember API
 
 ## Roadmap
 
 - [x] Phase 0: Repo scaffolding
-- [x] Phase 1: Live grid dashboard with anomaly detection
+- [ ] Phase 1: Live grid dashboard with anomaly detection (in progress)
 - [ ] Phase 2: Agentic narrative layer with LangGraph
 - [ ] Phase 3: Historical analog engine with vector search
 - [ ] Phase 4: Real-time dispatch support for battery operators

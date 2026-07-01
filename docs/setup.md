@@ -32,14 +32,13 @@ Verify installation:
 
 ## API Keys
 
-GridPace uses several free data APIs. Sign up for each before running the pipeline.
+GridPace Phase 1 uses the gridstatus open-source library which pulls directly
+from ISO public portals. No API key or account is required.
 
-### GridStatus (required)
+Note: gridstatus (open-source, free) is different from gridstatusio (paid API).
+GridPace uses gridstatus — no signup, no billing risk.
 
-Real-time ISO grid data. Free tier provides 250 requests per month.
-
-1. Sign up at https://gridstatus.io
-2. Copy your API key from the dashboard
+Future phases will add EIA, WattTime, and Ember APIs which require free registration.
 
 ## Configure Environment
 
@@ -47,12 +46,8 @@ Copy the example environment file:
 
     cp .env.example .env
 
-Open .env and fill in your API keys:
-
-    GRIDSTATUS_API_KEY=your_key_here
-
-GridStatus is the only key required for Phase 1. Additional keys will be added
-as new data sources are integrated in later phases.
+No API keys are required for Phase 1. The .env file contains environment
+settings for Prefect telemetry and future API integrations.
 
 ## Initialize the Database
 
@@ -85,7 +80,7 @@ Verify the full pipeline works before using real API quota:
 
     uv run python -m gridpace.grid.flows
 
-This runs the complete pipeline using sample data. No API requests are made.
+This runs the complete pipeline using sample data. No live ISO API calls are made.
 Check that it completes without errors.
 
 ### Live Run (uses real API data)
@@ -105,7 +100,7 @@ Set dry_run back to true after verifying live data is working.
 
 The seed script populates DuckDB with synthetic historical data for development
 and testing. This enables anomaly detection baselines and dashboard testing
-without consuming GridStatus API quota.
+without making live ISO API calls.
 
     make seed              # 48 hours of synthetic data
     make seed-week         # 168 hours — recommended for Price Analytics
@@ -207,12 +202,13 @@ Or run the pipeline to fetch live data:
 
     uv run python -m gridpace.grid.flows
 
-### API quota exceeded
+### GridStatus connection issues
 
-GridStatus free tier allows 250 requests per month. If you exceed this:
-- Set dry_run: true in config/settings.yml
-- Wait until the next month for quota to reset
-- Consider upgrading to a paid GridStatus tier
+GridPace pulls data directly from ISO public portals via the gridstatus
+open-source library. If you see connection errors:
+- Check your internet connection
+- Verify the ISO portal is accessible (CAISO OASIS, ERCOT public API, PJM Data Miner)
+- Set dry_run: true in config/settings.yml to use sample data while investigating
 
 ### Running integration tests
 
