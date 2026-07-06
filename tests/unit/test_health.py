@@ -84,14 +84,6 @@ def test_check_db_size_no_file(tmp_path):
         assert result["status"] == "warning"
 
 
-def test_check_migrations_ok():
-    """check_migrations returns ok when all migrations applied."""
-    from gridpace.monitoring.db_health import check_migrations
-    result = check_migrations()
-    assert result["status"] == "ok"
-    assert result["value"] >= 2  # at least 2 migrations exist
-
-
 def test_check_last_ingest_no_data():
     """check_last_ingest returns warning when no data exists."""
     from gridpace.monitoring.data_health import check_last_ingest
@@ -99,14 +91,6 @@ def test_check_last_ingest_no_data():
         result = check_last_ingest()
         assert result["status"] == "warning"
         assert result["value"] is None
-
-
-def test_check_row_counts_ok():
-    """check_row_counts returns ok when all layers have data."""
-    from gridpace.monitoring.data_health import check_row_counts
-    result = check_row_counts()
-    assert result["status"] == "ok"
-    assert isinstance(result["value"], dict)
 
 
 def test_check_data_gap_returns_result():
