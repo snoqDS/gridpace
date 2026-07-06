@@ -8,11 +8,10 @@
 # Data ingestion
 # ---------------------------------------------------------------------------
 ingestion:
-  poll_interval_minutes: 120  # 2-hour interval — GridStatus free tier limit
-                              # (250 requests/month). Price spikes shorter
-                              # than ~5-30 min will be missed by design.
-                              # Anomaly detection targets sustained conditions
-                              # only. See docs/architecture.md.
+  poll_interval_minutes: 5    # local real-time system poll interval in minutes.
+                              # gridstatus open-source library has no request limits.
+                              # See docs/architecture.md Key Decisions for full
+                              # polling rationale and constraint documentation.
   dry_run: true               # set to false for live API calls
   default_row_limit: 10       # rows per fetch during development
 

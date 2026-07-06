@@ -195,7 +195,8 @@ def render_sidebar():
 def render_main():
     """Render the main dashboard content with tab structure."""
     st.title("Grid Intelligence Dashboard")
-    st.caption("Real-time ISO grid conditions — data refreshes every 2 hours")
+    poll_minutes = app_config["ingestion"]["poll_interval_minutes"]
+    st.caption(f"Real-time ISO grid conditions — data refreshes every {poll_minutes} minutes")
 
     st.divider()
 
@@ -301,12 +302,12 @@ def render_main():
 def render_footer():
     """Render the GridStatus attribution footer per ToS Section 4.4."""
     st.divider()
+    poll_minutes = app_config["ingestion"]["poll_interval_minutes"]
     st.caption(
-        "Powered by [Grid Status](https://www.gridstatus.io/) | "
-        "Data refreshes every 2 hours on free tier | "
+        f"Powered by [Grid Status](https://www.gridstatus.io/) | "
+        f"Data refreshes every {poll_minutes} minutes | "
         "GridPace is open source under Apache 2.0"
     )
-
 
 def main():
     """Main dashboard entrypoint."""
