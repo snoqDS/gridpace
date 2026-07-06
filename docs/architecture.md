@@ -40,7 +40,8 @@ Current state:
     intelligence/detection/anomaly.py (z-score statistical baselines per ISO)
           |
           v
-    ui/app.py                        (Streamlit dashboard, tabs, ISO cards, donuts)
+    ui/app.py                        (Streamlit dashboard, tabs, ISO cards, donuts,
+                                      Price Analytics, System Health sidebar)
 
 Target state (full pipeline):
 
@@ -102,6 +103,12 @@ Dashboard analytics: Price Analytics tab provides interactive price distribution
 analysis (histogram, CDF, box plots, spread) and generation mix time series.
 All charts controlled by a single UTC date range slider. ISO cards display
 local time per ISO timezone for operator readability.
+
+Health monitoring: Three-module structure in monitoring/ — types.py defines
+HealthResult structure, db_health.py covers connectivity and migrations,
+data_health.py covers ingestion and data quality. get_health_summary() in
+health.py aggregates all checks. Dashboard sidebar displays live status with
+color-coded indicators. Thresholds configured in config/settings.yml under health:
 
 ## Phase 2: Agentic Narrative Layer (Planned)
 
@@ -217,6 +224,7 @@ Test scope boundaries:
     test_storage.py    DuckDB read/write with isolated temp databases
     test_transformers.py   pure data transformation functions
     test_validation.py     contract enforcement logic
+    test_health.py     health check logic for DB connectivity, size, migrations, data availability
 
 Flow tasks tested via .fn() to bypass Prefect context requirements.
 Integration tests skipped in CI and run manually to verify live API connectivity.

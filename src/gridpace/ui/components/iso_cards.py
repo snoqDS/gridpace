@@ -102,8 +102,7 @@ def render_fuel_mix_donut(iso_data: pd.Series, iso: str) -> None:
         font=dict(color="white"),
     )
 
-    st.plotly_chart(fig, use_container_width=True)
-
+    st.plotly_chart(fig, width='stretch')
 
 def render_iso_cards(df: pd.DataFrame, anomaly_results: dict = None) -> None:
     """

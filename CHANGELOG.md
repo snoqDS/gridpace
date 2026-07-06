@@ -152,3 +152,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - All Price Analytics charts controlled by single date range slider
 - load_iso_history() and load_iso_summary_history() fetch all available history
 - seed default_hours updated to 168 in config/settings.yml
+
+## [0.10.0] - 2026-07-06
+
+### Added
+- monitoring/health.py unified health summary entry point
+- monitoring/db_health.py DB connectivity, file size, migration checks
+- monitoring/data_health.py last ingest, row counts, data gap checks
+- monitoring/types.py HealthResult TypedDict and make_result helper
+- System Health section in dashboard sidebar with color-coded status
+- health thresholds in config/settings.yml
+- 12 new health tests (91 total passing)
+
+### Changed
+- poll_interval_minutes updated from 120 to 5 in config/settings.yml
+- Dashboard caption and footer read poll interval from config
+- docs updated to reflect gridstatus open-source library and 5-phase roadmap

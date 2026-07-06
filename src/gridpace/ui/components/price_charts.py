@@ -75,7 +75,7 @@ def render_lmp_histogram(df: pd.DataFrame) -> None:
         height=350,
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_lmp_cdf(df: pd.DataFrame) -> None:
@@ -119,7 +119,7 @@ def render_lmp_cdf(df: pd.DataFrame) -> None:
         height=350,
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_lmp_boxplot(df: pd.DataFrame) -> None:
@@ -156,7 +156,7 @@ def render_lmp_boxplot(df: pd.DataFrame) -> None:
         height=350,
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_price_spread(df: pd.DataFrame) -> None:
@@ -204,7 +204,7 @@ def render_price_spread(df: pd.DataFrame) -> None:
         height=300,
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Show metrics below chart
     cols = st.columns(len(spreads))
@@ -268,4 +268,4 @@ def render_generation_mix_timeseries(df: pd.DataFrame) -> None:
             height=300,
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')

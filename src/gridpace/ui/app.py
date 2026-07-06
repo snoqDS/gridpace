@@ -191,6 +191,29 @@ def render_sidebar():
         poll_minutes = app_config["ingestion"]["poll_interval_minutes"]
         st.info(f"Data refreshes every {poll_minutes} minutes")
 
+        st.divider()
+
+        st.subheader("System Health")
+        try:
+            from gridpace.monitoring.health import get_health_summary
+            summary = get_health_summary()
+
+            status_colors = {
+                "ok": "✅",
+                "warning": "⚠️",
+                "error": "❌",
+            }
+            for check, result in summary.items():
+                emoji = status_colors.get(result["status"], "⚪")
+                st.caption(f"{emoji} {check.replace('_', ' ').title()}: {result['message']}")
+                if result.get("details") and result["status"] != "ok":
+                    for _key, val in result["details"].items():
+                        if isinstance(val, list):
+                            for item in val:
+                                st.caption(f"　　• {item}")
+        except Exception as e:
+            st.caption(f"⚪ Health checks unavailable: {e}")
+
 
 def render_main():
     """Render the main dashboard content with tab structure."""

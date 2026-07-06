@@ -41,6 +41,14 @@ dashboard:
   refresh_interval_seconds: 7200  # 120 min * 60 s — auto-refresh trigger
   lookback_hours: 48          # time window for min/max display and anomaly baselines
 
+# ---------------------------------------------------------------------------
+# Health monitoring thresholds
+# ---------------------------------------------------------------------------
+health:
+  db_size_warning_gb: 1.0    # warn when DB exceeds this size
+  db_size_error_gb: 2.0      # error when DB exceeds this size
+  data_gap_warning_minutes: 15    # warn if no data in this many minutes
+  data_gap_error_minutes: 60      # error if no data in this many minutes
 
 # ---------------------------------------------------------------------------
 # LMP price thresholds ($/MWh)
