@@ -224,7 +224,8 @@ Test scope boundaries:
     test_storage.py    DuckDB read/write with isolated temp databases
     test_transformers.py   pure data transformation functions
     test_validation.py     contract enforcement logic
-    test_health.py     health check logic for DB connectivity, size, migrations, data availability
+    test_health.py (grid/) — health checks requiring initialized DB fixtures
+    test_health.py (unit/) — health check logic with mocked dependencies
 
 Flow tasks tested via .fn() to bypass Prefect context requirements.
 Integration tests skipped in CI and run manually to verify live API connectivity.
