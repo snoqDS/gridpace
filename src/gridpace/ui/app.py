@@ -176,6 +176,25 @@ def render_sidebar():
 
         st.divider()
 
+        st.subheader("ISO Selection")
+        all_isos = app_config["isos"]
+        default_isos = ["ERCOT", "CAISO", "MISO", "ISONE"]
+
+        selected_isos = []
+        for iso in all_isos:
+            default_on = iso in default_isos
+            if st.checkbox(iso, value=default_on, key=f"iso_toggle_{iso}"):
+                selected_isos.append(iso)
+
+        if not selected_isos:
+            st.warning("Select at least one ISO.")
+            selected_isos = default_isos
+
+        # Store in session state for use by main content
+        st.session_state["selected_isos"] = selected_isos
+
+        st.divider()
+
         st.subheader("Data Status")
         df = load_iso_summary()
         if df is not None and not df.empty:
@@ -223,8 +242,15 @@ def render_main():
 
     st.divider()
 
+    # Get selected ISOs from session state
+    selected_isos = st.session_state.get("selected_isos", ["ERCOT", "CAISO", "MISO", "ISONE"])
+
     # Load data
     df = load_iso_summary()
+    
+    # Filter to selected ISOs
+    if df is not None and not df.empty:
+        df = df[df["iso"].isin(selected_isos)]
 
     # Tab structure
     tab1, tab2, tab3, tab4 = st.tabs([
@@ -237,12 +263,20 @@ def render_main():
     with tab1:
         st.subheader("Current LMP by ISO")
         anomaly_results = load_anomaly_results()
-        render_iso_cards(df, anomaly_results)
+        # Filter anomaly results to selected ISOs
+        filtered_anomaly = {k: v for k, v in anomaly_results.items() if k in selected_isos}
+        render_iso_cards(df, filtered_anomaly)
 
     with tab2:
         st.subheader("Price Distribution Analytics")
         history_df = load_iso_history()
         gen_history = load_iso_summary_history()
+
+        # Filter to selected ISOs
+        if history_df is not None and not history_df.empty:
+            history_df = history_df[history_df["iso"].isin(selected_isos)]
+        if gen_history is not None and not gen_history.empty:
+            gen_history = gen_history[gen_history["iso"].isin(selected_isos)]
 
         if history_df is None or history_df.empty:
             st.info("No price history available. Run the pipeline or seed the database first.")
@@ -288,7 +322,7 @@ def render_main():
                 filtered_gen = None
 
             st.caption(
-                f"Showing {len(filtered_history) // len(history_df['iso'].unique())} hours per ISO"
+                f"Showing {len(filtered_history) // len(selected_isos)} hours per ISO"
             )
 
             st.divider()

@@ -121,6 +121,10 @@ authentication requirements. All other ISOs pull directly from public portals wi
 no key required. PJM is skipped gracefully when PJM_API_KEY is not set in .env.
 See docs/data_sources.md for ISO-specific registration requirements.
 
+ISO selector: Dashboard sidebar provides ON/OFF checkboxes for all 9 supported
+ISOs. Default selection is ERCOT, CAISO, MISO, ISONE. All charts and cards
+filter dynamically. Selected ISOs stored in Streamlit session_state.
+
 ## Phase 2: Agentic Narrative Layer (Planned)
 
 LangGraph state machine with observe, diagnose, explain, and publish nodes.
@@ -324,10 +328,6 @@ production deployments.
 MLflow: Planned for Phase 3 experiment tracking. Removed from Phase 1
 dependencies due to incompatibility with pandas>=3. Will be re-added when
 pandas compatibility is resolved.
-
-ISO selector: Dashboard sidebar will support ON/OFF toggles for all 9 supported
-ISOs (ERCOT, CAISO, PJM, MISO, SPP, NYISO, ISONE, IESO, AESO). All charts and
-cards filter dynamically by selected ISOs.
 
 Storage management: Configurable size caps per medallion layer (bronze, silver, gold)
 with both time-based and size-based age-off triggers. Aged-off bronze exports to

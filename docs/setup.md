@@ -143,7 +143,8 @@ Run linting:
 
     make lint
 
-Expected output: 79 tests passing, 2 skipped (integration tests).
+Expected output: all tests passing, 2 skipped (integration tests).
+Run make test to see current count.
 
 LLM evals are available in Phase 2 and beyond:
 

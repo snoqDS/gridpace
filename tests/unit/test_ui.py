@@ -154,3 +154,18 @@ def test_load_iso_summary_history_returns_none_on_error():
         load_iso_summary_history.clear()
         result = load_iso_summary_history()
         assert result is None
+
+def test_iso_selector_default_isos():
+    """Default ISO selection includes ERCOT, CAISO, MISO, ISONE."""
+    default_isos = ["ERCOT", "CAISO", "MISO", "ISONE"]
+    all_isos = app_config["isos"]
+    # All defaults must be in the configured ISO list
+    for iso in default_isos:
+        assert iso in all_isos
+
+
+def test_iso_selector_defaults_are_subset_of_all():
+    """Default ISOs are a subset of all configured ISOs."""
+    default_isos = ["ERCOT", "CAISO", "MISO", "ISONE"]
+    all_isos = app_config["isos"]
+    assert set(default_isos).issubset(set(all_isos))

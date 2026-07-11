@@ -185,3 +185,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - GRIDSTATUS_API_KEY removed from .env.example — open-source library needs no key
 - flows.py skips None results from fetch tasks gracefully
 - docs updated to reflect 9 ISO support throughout
+
+## [0.12.0] - 2026-07-11
+
+### Added
+- ISO selector UI in sidebar with ON/OFF checkboxes for all 9 ISOs
+- Default selection: ERCOT, CAISO, MISO, ISONE
+- All tabs (Live Conditions, Price Analytics) filter dynamically by selected ISOs
+- session_state stores selected ISO list for cross-tab consistency
