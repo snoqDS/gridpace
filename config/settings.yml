@@ -17,11 +17,20 @@ ingestion:
 
 # ---------------------------------------------------------------------------
 # ISOs to monitor
+# Supported: ERCOT, CAISO, MISO, SPP, NYISO, ISONE, IESO, AESO
+# PJM requires PJM_API_KEY in .env — skipped gracefully if not set
+# See docs/data_sources.md for ISO-specific requirements
 # ---------------------------------------------------------------------------
 isos:
   - ERCOT
   - CAISO
   - PJM
+  - MISO
+  - SPP
+  - NYISO
+  - ISONE
+  - IESO
+  - AESO
 
 # ---------------------------------------------------------------------------
 # Data retention
@@ -91,6 +100,14 @@ anomaly:
 # Seed script configuration
 # Synthetic data parameters for scripts/seed_db.py
 # Adjust these to generate more realistic data for your region/timeframe
+#
+# NOTE: LMP means and fuel mix percentages are approximate historical averages
+# based on publicly available ISO reports and EIA data (circa 2023-2024).
+# These are for synthetic data generation only — not for production analysis.
+# MISO coal percentage may be slightly high as grid decarbonizes.
+# IESO (Ontario) nuclear dominance (~60%) is accurate.
+# AESO (Alberta) nuclear is 0% — Alberta has no nuclear generation.
+# Replace with real data using scripts/backfill_events.py for production use.
 # ---------------------------------------------------------------------------
 seed:
   default_hours: 168   # hours of synthetic history to generate by default
@@ -107,6 +124,24 @@ seed:
     PJM:
       mean: 40.0
       std: 10.0
+    MISO:
+      mean: 32.0
+      std: 9.0
+    SPP:
+      mean: 28.0
+      std: 8.0
+    NYISO:
+      mean: 50.0
+      std: 18.0
+    ISONE:
+      mean: 48.0
+      std: 16.0
+    IESO:
+      mean: 38.0
+      std: 11.0
+    AESO:
+      mean: 42.0
+      std: 13.0
 
   # Approximate fuel mix percentages per ISO
   fuel_mix:
@@ -128,3 +163,39 @@ seed:
       solar: 5
       coal: 25
       nuclear: 25
+    MISO:
+      natural_gas: 28
+      wind: 20
+      solar: 3
+      coal: 35
+      nuclear: 14
+    SPP:
+      natural_gas: 25
+      wind: 35
+      solar: 5
+      coal: 30
+      nuclear: 5
+    NYISO:
+      natural_gas: 40
+      wind: 8
+      solar: 3
+      coal: 2
+      nuclear: 30
+    ISONE:
+      natural_gas: 45
+      wind: 10
+      solar: 3
+      coal: 2
+      nuclear: 30
+    IESO:
+      natural_gas: 10
+      wind: 8
+      solar: 2
+      coal: 5
+      nuclear: 60
+    AESO:
+      natural_gas: 55
+      wind: 20
+      solar: 3
+      coal: 18
+      nuclear: 0

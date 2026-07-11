@@ -46,8 +46,11 @@ Copy the example environment file:
 
     cp .env.example .env
 
-No API keys are required for Phase 1. The .env file contains environment
-settings for Prefect telemetry and future API integrations.
+Most ISOs require no API key. PJM is the exception — add PJM_API_KEY to .env
+if you have a PJM member account. See docs/data_sources.md for details.
+Without PJM_API_KEY, PJM is skipped in live pipeline but works in dry_run mode.
+
+The .env file also contains settings for Prefect telemetry and future API integrations.
 
 ## Initialize the Database
 
@@ -207,7 +210,9 @@ Or run the pipeline to fetch live data:
 GridPace pulls data directly from ISO public portals via the gridstatus
 open-source library. If you see connection errors:
 - Check your internet connection
-- Verify the ISO portal is accessible (CAISO OASIS, ERCOT public API, PJM Data Miner)
+- Verify the ISO portal is accessible for affected ISOs:
+  CAISO OASIS, ERCOT public API, MISO, SPP, NYISO, ISONE, IESO, AESO
+  PJM requires PJM_API_KEY — see docs/data_sources.md
 - Set dry_run: true in config/settings.yml to use sample data while investigating
 
 ### Running integration tests

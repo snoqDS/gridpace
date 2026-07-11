@@ -21,6 +21,9 @@ def fetch_lmp_task(iso: str):
     """Fetch LMP data for a single ISO with retry on failure."""
     from gridpace.grid.clients.gridstatus import get_lmp
     df = get_lmp(iso)
+    if df is None:
+        log.warning("lmp_fetch_skipped", iso=iso)
+        return None
     log.info("lmp_fetched", iso=iso, rows=len(df))
     return df
 
@@ -30,6 +33,9 @@ def fetch_fuel_mix_task(iso: str):
     """Fetch fuel mix data for a single ISO with retry on failure."""
     from gridpace.grid.clients.gridstatus import get_fuel_mix
     df = get_fuel_mix(iso)
+    if df is None:
+        log.warning("fuel_mix_fetch_skipped", iso=iso)
+        return None
     log.info("fuel_mix_fetched", iso=iso, rows=len(df))
     return df
 
@@ -117,12 +123,20 @@ def grid_pipeline():
     lmp_futures = [fetch_lmp_task.submit(iso) for iso in isos]
     fuel_futures = [fetch_fuel_mix_task.submit(iso) for iso in isos]
 
-    # Write bronze — wait for fetches to complete
+# Write bronze — wait for fetches to complete, skip None results
     for iso, lmp_future in zip(isos, lmp_futures, strict=True):
-        write_bronze_task(lmp_future.result(), iso, "lmp")
+        result = lmp_future.result()
+        if result is not None:
+            write_bronze_task(result, iso, "lmp")
+        else:
+            log.warning("bronze_lmp_skipped", iso=iso)
 
     for iso, fuel_future in zip(isos, fuel_futures, strict=True):
-        write_bronze_task(fuel_future.result(), iso, "fuel_mix")
+        result = fuel_future.result()
+        if result is not None:
+            write_bronze_task(result, iso, "fuel_mix")
+        else:
+            log.warning("bronze_fuel_mix_skipped", iso=iso)
 
     # Transform to silver
     transform_silver_task()

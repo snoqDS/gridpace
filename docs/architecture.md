@@ -115,6 +115,12 @@ data_health.py covers ingestion and data quality. get_health_summary() in
 health.py aggregates all checks. Dashboard sidebar displays live status with
 color-coded indicators. Thresholds configured in config/settings.yml under health:
 
+ISO support: Nine ISOs supported (ERCOT, CAISO, MISO, SPP, NYISO, ISONE, IESO,
+AESO, PJM). PJM requires a free API key from apiportal.pjm.com due to Data Miner 2
+authentication requirements. All other ISOs pull directly from public portals with
+no key required. PJM is skipped gracefully when PJM_API_KEY is not set in .env.
+See docs/data_sources.md for ISO-specific registration requirements.
+
 ## Phase 2: Agentic Narrative Layer (Planned)
 
 LangGraph state machine with observe, diagnose, explain, and publish nodes.
@@ -162,7 +168,7 @@ Designed for developers and investors evaluating storage and renewable projects.
     --------------------   ---------------------------
     Package manager        uv
     Language               Python 3.11
-    Data ingestion         gridstatus, httpx, requests
+    Data ingestion         gridstatus 0.34.0 (open-source, 9 ISOs, no request limits)
     Storage                DuckDB (bronze/silver/gold)
     Scheduling             Prefect (pipeline orchestration)
     Agent framework        LangGraph 1.0 (Phase 2)

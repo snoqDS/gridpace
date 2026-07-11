@@ -50,6 +50,20 @@ Fuel Mix (Generation by Fuel Type)
   config/settings.yml under ingestion.poll_interval_minutes).
   Native ISO resolution: 5-minute SCED intervals for LMP data.
 
+### ISO-Specific Requirements
+
+  Most ISOs require no API key — gridstatus pulls directly from public portals.
+  PJM is the exception:
+
+  PJM Data Miner 2 API:
+    Registration: https://apiportal.pjm.com
+    Cost: Free
+    Note: Requires a PJM member account. Non-member accounts (e.g. gmail.com)
+    have significantly limited access. If you are not a PJM member, PJM data
+    will be skipped in the live pipeline but works in dry_run mode.
+    Set PJM_API_KEY in .env once registered.
+    See .env.example for setup instructions.
+
 ## EIA Grid Monitor
 Planned for Phase 2. Will provide US generation and demand data.
 

@@ -32,6 +32,8 @@ ISO_TIMEZONES = {
     "SPP": "America/Chicago",
     "NYISO": "America/New_York",
     "ISONE": "America/New_York",
+    "IESO": "America/Toronto",
+    "AESO": "America/Edmonton",
 }
 
 

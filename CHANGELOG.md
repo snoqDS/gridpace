@@ -168,3 +168,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - poll_interval_minutes updated from 120 to 5 in config/settings.yml
 - Dashboard caption and footer read poll interval from config
 - docs updated to reflect gridstatus open-source library and 5-phase roadmap
+
+## [0.11.0] - 2026-07-11
+
+### Added
+- 9 ISO support: ERCOT, CAISO, MISO, SPP, NYISO, ISONE, IESO, AESO, PJM
+- PJM graceful degradation when PJM_API_KEY not set
+- ISO_CLASSES mapping in gridstatus client with per-ISO constructor kwargs
+- SAMPLE_LMP now includes Market=SYNTHETIC for synthetic data detection
+- PJM_API_KEY added to .env.example with registration instructions
+- docs/data_sources.md ISO-specific requirements section
+- seed config updated with lmp_params and fuel_mix for all 9 ISOs
+- 5 new client tests, 96 total passing
+
+### Changed
+- GRIDSTATUS_API_KEY removed from .env.example — open-source library needs no key
+- flows.py skips None results from fetch tasks gracefully
+- docs updated to reflect 9 ISO support throughout

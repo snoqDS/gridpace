@@ -11,7 +11,8 @@ agentic narrative generation and historical analog retrieval in future phases.
 
 Phase 1 is in progress. The dashboard is running locally with synthetic data.
 
-- LMP price monitoring across ERCOT, CAISO, and PJM (9 ISOs planned)
+- LMP price monitoring across 9 ISOs (ERCOT, CAISO, MISO, SPP, NYISO, ISONE, IESO, AESO, PJM)
+- PJM requires free API key from apiportal.pjm.com — other ISOs need no key
 - Statistical anomaly detection with z-score baselines per ISO
 - Generation fuel mix breakdown with donut charts
 - Medallion data architecture (bronze, silver, gold) via DuckDB
