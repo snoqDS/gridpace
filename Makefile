@@ -1,4 +1,4 @@
-.PHONY: install lint format test eval run mlflow diagnostics
+.PHONY: install lint format test eval run mlflow diagnostics diagnostics-full seed reseed seed-week
 
 install:
 	uv sync --all-groups
@@ -23,6 +23,9 @@ mlflow:
 
 diagnostics:
 	uv run python scripts/diagnostics.py
+
+diagnostics-full:
+	uv run python scripts/diagnostics.py --security
 
 seed:
 	uv run python scripts/seed_db.py

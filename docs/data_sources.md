@@ -31,8 +31,6 @@ LMP (Locational Marginal Prices)
   Native resolution: 5-minute SCED intervals from ISO public portals
   Effective poll interval: Configured in config/settings.yml under
     ingestion.poll_interval_minutes (default 5 minutes).
-    gridstatus open-source library has no request limits — pulls directly
-    from CAISO OASIS, ERCOT public API, and PJM Data Miner.
   ISOs: Configured in config/settings.yml under isos:
   Key fields: Interval Start, Interval End, Location, Location Type, LMP
 
@@ -40,7 +38,8 @@ Fuel Mix (Generation by Fuel Type)
   Endpoint: iso.get_fuel_mix(date="latest")
   Native resolution: 5-minute intervals for most ISOs, varies by market
   Effective poll interval: Configured in config/settings.yml under
-    ingestion.poll_interval_minutes (default 5 minutes).  ISOs: Configured in config/settings.yml under isos:
+    ingestion.poll_interval_minutes (default 5 minutes).
+  ISOs: Configured in config/settings.yml under isos:
   Key fields: time, natural_gas, wind, solar, coal, nuclear
 
 ### API Limits
@@ -50,12 +49,6 @@ Fuel Mix (Generation by Fuel Type)
   Poll interval: 5 minutes for local real-time system (configurable in
   config/settings.yml under ingestion.poll_interval_minutes).
   Native ISO resolution: 5-minute SCED intervals for LMP data.
-
-### Notes
-
-  dry_run mode returns sample data without hitting the API
-  Integration tests are skipped in CI to preserve quota
-  Run integration tests manually: uv run pytest tests/integration/ -v
 
 ## EIA Grid Monitor
 Planned for Phase 2. Will provide US generation and demand data.
@@ -70,3 +63,16 @@ Planned for Phase 2. Will provide historical generation mix and carbon intensity
 ## Weather
 Planned for Phase 4. Required for cross-variable correlation analysis
 (weather vs LMP). Source TBD — candidates include NOAA HRRR and NASA POWER.
+
+### Notes
+
+  dry_run mode returns sample data without hitting the API.
+  Integration tests are skipped in CI to avoid live ISO API calls during automated builds.
+
+  Run integration tests manually: uv run pytest tests/integration/ -v
+
+  API quota tracking: not required — gridstatus open-source library pulls
+  directly from ISO public portals with no request limits. If switching to
+  the paid gridstatusio API, add quota tracking to scripts/diagnostics.py
+  and monitor usage at https://api.gridstatus.io/v1/api_usage.
+  See docs/architecture.md Key Decisions for full rationale.

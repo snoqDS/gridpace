@@ -86,6 +86,11 @@ paid gridstatusio API which has a 250 request/month free tier limit. The local
 real-time system polls every 5 minutes, matching native ISO SCED resolution.
 Price spikes lasting 5 minutes or longer are detectable at this resolution.
 
+API quota management: gridstatus open-source library requires no quota
+tracking. If migrating to gridstatusio paid API (250 requests/month free
+tier), add usage monitoring to scripts/diagnostics.py and alert thresholds
+to config/settings.yml. See docs/data_sources.md for API comparison.
+
 Pipeline orchestration: Prefect @flow and @task decorators wrap existing pipeline
 functions. Tasks retry twice on failure with 30-second delays. ISOs fetch in
 parallel via task futures. structlog handles all logging throughout the pipeline.

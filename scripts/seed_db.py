@@ -10,6 +10,9 @@ per ISO, enabling anomaly detection baselines and dashboard testing
 without consuming GridStatus API quota.
 
 Safe to run multiple times — checks for existing data before inserting.
+
+WARNING: --force wipes ALL data across bronze, silver, and gold layers.
+Use with care. Safe for development only.
 """
 
 import sys
@@ -73,6 +76,7 @@ def generate_lmp_df(iso: str, hours: int, end_time: pd.Timestamp) -> pd.DataFram
         "lmp": prices.round(2),
         "energy": (prices * 0.95).round(2),
         "congestion": (prices * 0.05).round(2),
+        "Market": "SYNTHETIC",        # preserved through transformer as market field
     })
 
 
@@ -103,7 +107,8 @@ def seed_database(hours: int = None, force: bool = False) -> None:
 
     Args:
         hours: number of hours of history to generate (default from config)
-        force: if True, seed even if data already exists
+        force: if True, wipe all existing data and reseed from scratch.
+               Without force, skips seeding if data already exists.
     """
     log.info("seed_started", hours=hours)
     if hours is None:
@@ -116,9 +121,20 @@ def seed_database(hours: int = None, force: bool = False) -> None:
     existing = check_existing_data()
     if existing > 0 and not force:
         log.info("seed_skipped", reason="data already exists", existing_rows=existing)
-        print(f"Database already has {existing} rows. Use force=True to reseed.")
+        print(f"Database already has {existing} rows. Use --force to wipe and reseed.")
         return
 
+    if existing > 0 and force:
+        print("Wiping existing data...")
+        conn = get_connection()
+        conn.execute("DELETE FROM bronze.lmp")
+        conn.execute("DELETE FROM bronze.fuel_mix")
+        conn.execute("DELETE FROM silver.lmp")
+        conn.execute("DELETE FROM silver.fuel_mix")
+        conn.execute("DELETE FROM gold.iso_summary")
+        conn.close()
+        log.info("database_wiped")
+        print("Done.")
     isos = app_config["isos"]
     end_time = pd.Timestamp.now(tz="UTC").floor("h")
 

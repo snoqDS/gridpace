@@ -102,9 +102,9 @@ The seed script populates DuckDB with synthetic historical data for development
 and testing. This enables anomaly detection baselines and dashboard testing
 without making live ISO API calls.
 
-    make seed              # 48 hours of synthetic data
-    make seed-week         # 168 hours — recommended for Price Analytics
-    make reseed            # clear and regenerate 48h data
+    make seed        — populate DB if empty, skip if data exists
+    make reseed      — wipe ALL data and regenerate 48h synthetic
+    make seed-week   — wipe ALL data and regenerate 168h synthetic
 
 Seed parameters are configured in config/settings.yml under seed:
 
