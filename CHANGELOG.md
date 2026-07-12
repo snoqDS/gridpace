@@ -193,3 +193,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Default selection: ERCOT, CAISO, MISO, ISONE
 - All tabs (Live Conditions, Price Analytics) filter dynamically by selected ISOs
 - session_state stores selected ISO list for cross-tab consistency
+
+## [0.13.0] - 2026-07-12
+
+### Added
+- storage.py get_layer_sizes() — row counts and DB file size per layer
+- storage.py export_bronze_to_parquet() — export aged-off bronze to local Parquet
+- storage.py apply_size_based_retention() — size-based age-off with Parquet export
+- flows.py size_retention_task() — runs size check on every pipeline execution
+- scripts/backfill_events.py — gold NULL backfill and historical data backfill
+- make backfill and make backfill-history Makefile targets
+- data/archive/bronze|silver|gold directories with .gitkeep
+- config/settings.yml storage section with size caps and archive path
+- 5 new retention tests, 103 total passing
+
+### Changed
+- apply_retention_policy() now complemented by size-based retention
+- Path imported in storage.py for archive path handling

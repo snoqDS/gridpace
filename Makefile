@@ -1,4 +1,4 @@
-.PHONY: install lint format test eval run mlflow diagnostics diagnostics-full seed reseed seed-week
+.PHONY: install lint format test eval run mlflow diagnostics diagnostics-full seed reseed seed-week backfill backfill-history
 
 install:
 	uv sync --all-groups
@@ -35,3 +35,9 @@ reseed:
 
 seed-week:
 	uv run python scripts/seed_db.py --hours 168 --force
+
+backfill:
+	uv run python scripts/backfill_events.py --gold
+
+backfill-history:
+	uv run python scripts/backfill_events.py --history --days 30

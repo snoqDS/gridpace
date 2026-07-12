@@ -199,3 +199,19 @@ seed:
       solar: 3
       coal: 18
       nuclear: 0
+
+# ---------------------------------------------------------------------------
+# Storage management
+# Size-based age-off triggers per medallion layer.
+# When a layer exceeds the cap, oldest data is aged off first.
+# Aged-off bronze exports to data/archive/ as Parquet before deletion.
+# All values in gigabytes (GB).
+# ---------------------------------------------------------------------------
+storage:
+  bronze_warning_gb: 4.0    # warn when bronze approaches cap
+  bronze_cap_gb: 5.0        # age off oldest bronze when exceeded
+  silver_warning_gb: 4.0    # warn when silver approaches cap
+  silver_cap_gb: 5.0        # age off oldest silver when exceeded
+  gold_warning_gb: 0.8      # warn when gold approaches cap
+  gold_cap_gb: 1.0          # age off oldest gold when exceeded
+  archive_dir: "data/archive"  # local Parquet export path

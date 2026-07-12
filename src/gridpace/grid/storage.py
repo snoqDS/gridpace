@@ -10,6 +10,7 @@ Run migrations before using storage functions:
 
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 
 import duckdb
 import pandas as pd
@@ -290,6 +291,128 @@ def apply_retention_policy() -> int:
     conn.close()
     total = lmp_deleted + fuel_deleted
     return total
+
+
+def get_layer_sizes() -> dict:
+    """
+    Get current size of each medallion layer in DuckDB.
+    Uses row counts and DB file size as a proxy since DuckDB
+    estimated_size is unreliable for small tables.
+    Returns dict with row counts and estimated size in GB per layer.
+    """
+    conn = get_connection()
+    sizes = {}
+    try:
+        # Get total DB file size
+        db_size_gb = round(Path(DB_PATH).stat().st_size / 1024 / 1024 / 1024, 4)
+
+        # Get row counts per layer
+        for schema in ["bronze", "silver", "gold"]:
+            tables = conn.execute(f"""
+                SELECT table_name FROM duckdb_tables()
+                WHERE schema_name = '{schema}'
+            """).fetchall()
+
+            total_rows = 0
+            for (table_name,) in tables:
+                count = conn.execute(
+                    f"SELECT COUNT(*) FROM {schema}.{table_name}"
+                ).fetchone()[0]
+                total_rows += count
+
+            sizes[schema] = {
+                "rows": total_rows,
+                "db_total_gb": db_size_gb,
+            }
+
+        log.info("layer_sizes_checked", sizes=sizes)
+    except Exception as e:
+        log.warning("layer_size_check_failed", error=str(e))
+    finally:
+        conn.close()
+    return sizes
+
+
+def export_bronze_to_parquet(table: str, cutoff_timestamp) -> Path:
+    """
+    Export bronze data older than cutoff to Parquet archive.
+    Returns path to the exported file.
+
+    Args:
+        table: 'lmp' or 'fuel_mix'
+        cutoff_timestamp: export rows older than this timestamp
+    """
+    archive_dir = ROOT / app_config.get("storage", {}).get("archive_dir", "data/archive")
+    bronze_archive = archive_dir / "bronze"
+    bronze_archive.mkdir(parents=True, exist_ok=True)
+
+    timestamp_str = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    output_path = bronze_archive / f"bronze_{table}_{timestamp_str}.parquet"
+
+    conn = get_connection()
+    try:
+        conn.execute(f"""
+            COPY (
+                SELECT * FROM bronze.{table}
+                WHERE ingested_at < '{cutoff_timestamp}'
+            ) TO '{output_path}' (FORMAT PARQUET)
+        """)
+        row_count = conn.execute(f"""
+            SELECT COUNT(*) FROM bronze.{table}
+            WHERE ingested_at < '{cutoff_timestamp}'
+        """).fetchone()[0]
+        log.info("bronze_exported_to_parquet",
+                 table=table,
+                 path=str(output_path),
+                 rows=row_count)
+    finally:
+        conn.close()
+
+    return output_path
+
+
+def apply_size_based_retention() -> dict:
+    """
+    Check total DB size and age off bronze data when cap is exceeded.
+    Exports bronze to Parquet before deletion.
+    Silver and gold are much smaller — only bronze needs active management.
+    Returns dict with actions taken and current sizes.
+
+    Size caps configured in config/settings.yml under storage:
+        bronze_cap_gb — total DB cap trigger for bronze age-off
+    """
+    storage_cfg = app_config.get("storage", {})
+    bronze_cap = storage_cfg.get("bronze_cap_gb", 5.0)
+    bronze_warning = storage_cfg.get("bronze_warning_gb", 4.0)
+
+    # Use actual DB file size — most reliable metric
+    db_size_gb = round(Path(DB_PATH).stat().st_size / 1024 / 1024 / 1024, 4)
+    actions = {}
+
+    conn = get_connection()
+    try:
+        if db_size_gb >= bronze_cap:
+            log.warning("db_cap_exceeded", size_gb=db_size_gb, cap_gb=bronze_cap)
+            cutoff = conn.execute("""
+                SELECT ingested_at FROM bronze.lmp
+                ORDER BY ingested_at ASC
+                LIMIT 1 OFFSET (SELECT COUNT(*) / 2 FROM bronze.lmp)
+            """).fetchone()
+            if cutoff:
+                export_bronze_to_parquet("lmp", cutoff[0])
+                export_bronze_to_parquet("fuel_mix", cutoff[0])
+                conn.execute(f"DELETE FROM bronze.lmp WHERE ingested_at < '{cutoff[0]}'")
+                conn.execute(f"DELETE FROM bronze.fuel_mix WHERE ingested_at < '{cutoff[0]}'")
+                actions["bronze"] = f"aged off data before {cutoff[0]}, exported to Parquet"
+        elif db_size_gb >= bronze_warning:
+            log.warning("db_size_warning", size_gb=db_size_gb, warning_gb=bronze_warning)
+            actions["warning"] = f"{db_size_gb}GB approaching {bronze_cap}GB cap"
+
+    finally:
+        conn.close()
+
+    log.info("size_based_retention_complete", actions=actions, db_size_gb=db_size_gb)
+    return {"actions": actions, "db_size_gb": db_size_gb}
 
 
 def get_last_ingested_at(table: str = "lmp") -> str | None:

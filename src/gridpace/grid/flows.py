@@ -82,6 +82,14 @@ def retention_task():
     log.info("retention_applied", rows_deleted=deleted)
     return deleted
 
+@task
+def size_retention_task():
+    """Check layer sizes and age off data if caps exceeded."""
+    from gridpace.grid.storage import apply_size_based_retention
+    result = apply_size_based_retention()
+    log.info("size_retention_checked", sizes=result["sizes"], actions=result["actions"])
+    return result
+
 
 @task
 def gap_check_task():
@@ -144,8 +152,11 @@ def grid_pipeline():
     # Compute gold
     compute_gold_task()
 
-    # Apply retention
+    # Apply time-based retention
     retention_task()
+
+    # Apply size-based retention and export to Parquet if needed
+    size_retention_task()
 
     log.info("pipeline_complete")
 

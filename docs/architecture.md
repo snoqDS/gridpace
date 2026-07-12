@@ -125,6 +125,13 @@ ISO selector: Dashboard sidebar provides ON/OFF checkboxes for all 9 supported
 ISOs. Default selection is ERCOT, CAISO, MISO, ISONE. All charts and cards
 filter dynamically. Selected ISOs stored in Streamlit session_state.
 
+Storage management: Size-based retention complements time-based retention.
+apply_size_based_retention() checks total DB file size against configurable
+caps in config/settings.yml under storage: When bronze cap is exceeded,
+oldest 50% of bronze data exports to data/archive/bronze/ as Parquet before
+deletion. Silver and gold are smaller and managed by time-based retention only.
+Cloudflare R2 upload path documented as future production archive destination.
+
 ## Phase 2: Agentic Narrative Layer (Planned)
 
 LangGraph state machine with observe, diagnose, explain, and publish nodes.

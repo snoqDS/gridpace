@@ -109,6 +109,14 @@ without making live ISO API calls.
     make reseed      — wipe ALL data and regenerate 48h synthetic
     make seed-week   — wipe ALL data and regenerate 168h synthetic
 
+To backfill gold NULL columns after a migration:
+
+    make backfill
+
+To fetch 30 days of real historical data (requires dry_run: false):
+
+    make backfill-history
+
 Seed parameters are configured in config/settings.yml under seed:
 
     seed:
@@ -152,41 +160,8 @@ LLM evals are available in Phase 2 and beyond:
 
 ## Development Workflow
 
-The recommended workflow for making changes:
-
-1. Create a feature branch:
-
-    git checkout -b feat/your-feature-name
-
-2. Make your changes.
-
-3. Run lint and fix any issues:
-
-    make lint
-
-4. Run the full test suite:
-
-    make test
-
-5. Add tests for any new features or changed behavior.
-
-6. If you changed the pipeline schema, run migrations and reseed:
-
-    make reseed
-
-7. Update CHANGELOG.md with what changed.
-
-8. Update docs/architecture.md if architecture or key decisions changed.
-
-9. Update docs/setup.md if setup steps changed.
-
-10. Commit using Conventional Commits format:
-
-    git commit -m "feat: description of change"
-
-11. Push and verify CI is green:
-
-    git push origin main
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full development workflow
+including branch naming, commit format, and PR process.
 
 ## Troubleshooting
 

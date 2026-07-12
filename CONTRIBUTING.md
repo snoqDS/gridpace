@@ -14,9 +14,12 @@ Thank you for your interest in contributing. This document outlines the process 
 
     uv sync
 
-4. Copy the environment file and add your API keys:
+4. Copy the environment file:
 
     cp .env.example .env
+
+    Most ISOs require no API key. See docs/data_sources.md for ISO-specific
+    requirements. PJM requires a free key from apiportal.pjm.com.
 
 5. Create a feature branch:
 
@@ -38,6 +41,18 @@ Follow Conventional Commits format:
 - `chore: update dependencies`
 - `docs: expand architecture documentation`
 
+## Pre-Commit Checklist
+
+Before every commit:
+
+1. make lint
+2. make test
+3. Add tests for any new features or changed behavior
+4. If you changed the pipeline schema (new migration): make reseed
+5. Update CHANGELOG.md with what changed
+6. Update docs/architecture.md if architecture or key decisions changed
+7. Update docs/setup.md if setup steps changed
+
 ## Code Style
 
 This project uses Ruff for linting and formatting. Before committing:
@@ -47,7 +62,7 @@ This project uses Ruff for linting and formatting. Before committing:
 
 ## Running Tests
 
-    uv run pytest tests/ -v
+    make test
 
 All tests must pass before submitting a pull request.
 
