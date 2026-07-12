@@ -210,3 +210,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - apply_retention_policy() now complemented by size-based retention
 - Path imported in storage.py for archive path handling
+
+## [0.14.0] - 2026-07-12
+
+### Added
+- Health tab in dashboard with 6 monitoring domains:
+  Data Freshness, Data Quality, Storage, Pipeline Health, System, ISO Coverage
+- Sidebar System Health shows affected domain names not just count
+- Data summary caption on Price Analytics tab (date range, rows, ISOs)
+- health_tab.py component module
+
+### Changed
+- Sidebar health section simplified to domain-level summary
+- Full health details moved to Health tab

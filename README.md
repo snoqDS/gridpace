@@ -1,44 +1,52 @@
 # GridPace
 
-Real-time grid intelligence dashboard for US ISO/RTO markets.
+Real-time grid intelligence dashboard for North American ISO/RTO markets.
 
-GridPace monitors live grid conditions across ERCOT, CAISO, and PJM — tracking
-LMP prices, generation fuel mix, renewable penetration, and statistical anomalies.
-Built with a production-grade data pipeline and an extensible architecture for
-agentic narrative generation and historical analog retrieval in future phases.
+GridPace monitors live grid conditions across 9 ISOs — tracking LMP prices,
+generation fuel mix, renewable penetration, statistical anomalies, and system
+health. Built with a production-grade data pipeline and an extensible architecture
+for agentic narrative generation and historical analog retrieval in future phases.
 
 ## Current State
 
 Phase 1 is in progress. The dashboard is running locally with synthetic data.
 
-- LMP price monitoring across 9 ISOs (ERCOT, CAISO, MISO, SPP, NYISO, ISONE, IESO, AESO, PJM)
-- PJM requires free API key from apiportal.pjm.com — other ISOs need no key
+- Real-time LMP price monitoring across 9 ISOs (ERCOT, CAISO, MISO, SPP, NYISO, ISONE, IESO, AESO, PJM)
+- PJM requires free API key from apiportal.pjm.com — all other ISOs need no key
+- ISO selector with ON/OFF toggles — default view shows ERCOT, CAISO, MISO, ISONE
 - Statistical anomaly detection with z-score baselines per ISO
-- Generation fuel mix breakdown with donut charts
-- Medallion data architecture (bronze, silver, gold) via DuckDB
-- Prefect orchestration with parallel ISO fetching
-- Streamlit dashboard with tab structure for future analytics
+- Generation fuel mix breakdown with donut charts per ISO
+- Price Analytics tab — histogram, CDF, box plots, spread, generation mix time series
+- Health tab — 6 monitoring domains with operator-grade detail
+- Medallion data architecture (bronze/silver/gold) via DuckDB
+- Storage size caps with Parquet archive export
+- Prefect orchestration with parallel ISO fetching at 5-minute intervals
+- Streamlit dashboard with 5 tabs: Live Conditions, Price Analytics, Nodal Analysis, Correlations, Health
 
 ## Quick Start
 
     git clone https://github.com/snoqDS/gridpace.git
     cd gridpace
     uv sync
-    cp .env.example .env       # no API key required for Phase 1
-    make seed                  # populate with synthetic data
+    cp .env.example .env       # no API key required for most ISOs
+    make seed                  # populate with 48h synthetic data
     make run                   # open dashboard at localhost:8501
 
 See [docs/setup.md](docs/setup.md) for full setup instructions including
-live data configuration, and troubleshooting.
+live data configuration and troubleshooting.
 
 ## Commands
 
-    make run          # launch dashboard
-    make test         # run test suite (79 tests)
-    make lint         # run ruff linter
-    make seed         # populate DB with 48h synthetic data
-    make seed-week    # populate DB with 168h synthetic data (recommended)
-    make reseed       # clear and regenerate 48h synthetic data
+    make run              # launch dashboard
+    make test             # run test suite
+    make lint             # run ruff linter
+    make seed             # populate DB with 48h synthetic data
+    make seed-week        # populate DB with 168h synthetic data (recommended)
+    make reseed           # wipe and regenerate 48h synthetic data
+    make backfill         # backfill gold NULL columns after migrations
+    make backfill-history # fetch 30 days of real historical data
+    make diagnostics      # print full system status report
+    make diagnostics-full # include pip-audit security scan
 
 ## Architecture
 

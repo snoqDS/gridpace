@@ -10,6 +10,7 @@ from gridpace.config import app_config
 from gridpace.grid.storage import get_connection
 from gridpace.intelligence.detection.anomaly import detect_anomalies
 from gridpace.monitoring.logger import get_logger
+from gridpace.ui.components.health_tab import render_health_tab
 from gridpace.ui.components.iso_cards import render_iso_cards
 from gridpace.ui.components.price_charts import (
     render_generation_mix_timeseries,
@@ -190,7 +191,6 @@ def render_sidebar():
             st.warning("Select at least one ISO.")
             selected_isos = default_isos
 
-        # Store in session state for use by main content
         st.session_state["selected_isos"] = selected_isos
 
         st.divider()
@@ -217,21 +217,37 @@ def render_sidebar():
             from gridpace.monitoring.health import get_health_summary
             summary = get_health_summary()
 
-            status_colors = {
-                "ok": "✅",
-                "warning": "⚠️",
-                "error": "❌",
+            statuses = [r["status"] for r in summary.values()]
+            error_count = statuses.count("error")
+            warning_count = statuses.count("warning")
+
+            domain_map = {
+                "db_connectivity": "System",
+                "db_size": "Storage",
+                "migrations": "System",
+                "last_ingest": "Data Freshness",
+                "row_counts": "Data Quality",
+                "data_gap": "Data Quality",
             }
-            for check, result in summary.items():
-                emoji = status_colors.get(result["status"], "⚪")
-                st.caption(f"{emoji} {check.replace('_', ' ').title()}: {result['message']}")
-                if result.get("details") and result["status"] != "ok":
-                    for _key, val in result["details"].items():
-                        if isinstance(val, list):
-                            for item in val:
-                                st.caption(f"　　• {item}")
+
+            if error_count > 0:
+                st.error(f"🔴 {error_count} issue(s) detected")
+                for check, result in summary.items():
+                    if result["status"] == "error":
+                        domain = domain_map.get(check, check)
+                        st.caption(f"  • {domain}")
+                st.caption("→ Check Health tab for details")
+            elif warning_count > 0:
+                st.warning(f"🟡 {warning_count} warning(s)")
+                for check, result in summary.items():
+                    if result["status"] == "warning":
+                        domain = domain_map.get(check, check)
+                        st.caption(f"  • {domain}")
+                st.caption("→ Check Health tab for details")
+            else:
+                st.success("🟢 All systems healthy")
         except Exception as e:
-            st.caption(f"⚪ Health checks unavailable: {e}")
+            st.error(f"🔴 Health check failed: {e}")
 
 
 def render_main():
@@ -253,11 +269,12 @@ def render_main():
         df = df[df["iso"].isin(selected_isos)]
 
     # Tab structure
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "Live Conditions",
         "Price Analytics",
         "Nodal Analysis",
         "Correlations",
+        "Health",
     ])
 
     with tab1:
@@ -269,8 +286,17 @@ def render_main():
 
     with tab2:
         st.subheader("Price Distribution Analytics")
+
         history_df = load_iso_history()
         gen_history = load_iso_summary_history()
+
+        # Data summary for analysts
+        if history_df is not None and not history_df.empty:
+            min_date = history_df["window_start"].min().strftime("%b %d %Y")
+            max_date = history_df["window_start"].max().strftime("%b %d %Y")
+            total_rows = len(history_df)
+            n_isos = len(history_df["iso"].unique())
+            st.caption(f"Data: {min_date} → {max_date} | {total_rows:,} rows | {n_isos} ISOs")
 
         # Filter to selected ISOs
         if history_df is not None and not history_df.empty:
@@ -354,6 +380,10 @@ def render_main():
     with tab4:
         st.subheader("Cross-Variable Correlations")
         st.info("Coming soon — weather vs LMP, renewable vs price, correlation matrix.")
+
+    with tab5:
+        st.subheader("System Health Dashboard")
+        render_health_tab()
 
 
 def render_footer():

@@ -40,8 +40,12 @@ Current state:
     intelligence/detection/anomaly.py (z-score statistical baselines per ISO)
           |
           v
-    ui/app.py                        (Streamlit dashboard, tabs, ISO cards, donuts,
-                                      Price Analytics, System Health sidebar)
+    ui/app.py                        (Streamlit dashboard, 5 tabs, ISO selector,
+                                      sidebar health summary)
+          |
+          ├── ui/components/iso_cards.py    (Live Conditions — price cards, donuts)
+          ├── ui/components/price_charts.py (Price Analytics — histogram, CDF, box plots)
+          └── ui/components/health_tab.py   (Health tab — 6 monitoring domains)
 
 Target state (full pipeline):
 
@@ -131,6 +135,11 @@ caps in config/settings.yml under storage: When bronze cap is exceeded,
 oldest 50% of bronze data exports to data/archive/bronze/ as Parquet before
 deletion. Silver and gold are smaller and managed by time-based retention only.
 Cloudflare R2 upload path documented as future production archive destination.
+
+Health monitoring UI: Sidebar shows traffic light status and affected domain
+names only. Full details in Health tab covering Data Freshness, Data Quality,
+Storage, Pipeline Health, System, and ISO Coverage. Domain-level sidebar keeps
+cognitive load low while Health tab provides operator-grade detail.
 
 ## Phase 2: Agentic Narrative Layer (Planned)
 
@@ -241,9 +250,10 @@ Shared constants live in tests/conftest.py:
 
 Test scope boundaries:
     test_anomaly.py    statistical detection logic only, no UI or DB dependencies
-    test_ui.py         display layer, cache behavior, schema validation
+    test_ui.py         display layer, cache behavior, schema validation, health tab imports
     test_flows.py      Prefect task behavior with mocked dependencies
-    test_storage.py    DuckDB read/write with isolated temp databases
+    test_storage.py          DuckDB read/write with isolated temp databases
+    test_storage_retention.py size-based retention, Parquet export, layer sizes
     test_transformers.py   pure data transformation functions
     test_validation.py     contract enforcement logic
     test_health.py (grid/) — health checks requiring initialized DB fixtures

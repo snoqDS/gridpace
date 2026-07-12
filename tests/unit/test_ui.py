@@ -169,3 +169,17 @@ def test_iso_selector_defaults_are_subset_of_all():
     default_isos = ["ERCOT", "CAISO", "MISO", "ISONE"]
     all_isos = app_config["isos"]
     assert set(default_isos).issubset(set(all_isos))
+
+def test_health_tab_status_icon():
+    """_status_icon returns correct emoji for each status."""
+    from gridpace.ui.components.health_tab import _status_icon
+    assert _status_icon("ok") == "✅"
+    assert _status_icon("warning") == "⚠️"
+    assert _status_icon("error") == "❌"
+    assert _status_icon("unknown") == "⚪"
+
+
+def test_health_tab_import():
+    """health_tab module imports without error."""
+    from gridpace.ui.components import health_tab
+    assert hasattr(health_tab, "render_health_tab")
