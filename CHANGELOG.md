@@ -223,3 +223,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Sidebar health section simplified to domain-level summary
 - Full health details moved to Health tab
+
+## [0.14.1] - 2026-07-13
+
+### Changed
+- pyproject.toml: added comment clarifying gridstatus vs gridstatusio
+- docs/architecture.md: Future Considerations updated for R2 deferral and storage management
+- Memory cleanup: completed items marked done, stale items removed

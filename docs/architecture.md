@@ -316,10 +316,12 @@ passing raw external text directly to the LLM reasoning loop.
 ## Future Considerations
 
 Scale out storage: DuckDB handles gigabytes easily on a single machine.
-When bronze data exceeds 90 days, aged off data exports to S3 as Parquet files.
-DuckDB reads S3 Parquet natively so historical queries require no code changes.
-DynamoDB was explicitly ruled out as it is designed for transactional workloads,
-not the analytical time series queries GridPace requires.
+When bronze data exceeds retention thresholds, aged-off data exports to local
+Parquet files in data/archive/. Cloudflare R2 (S3-compatible, 10GB free, no
+egress fees) is the planned cloud archive destination — evaluate after real
+data collection establishes actual volume. DuckDB reads S3/R2 Parquet natively
+so historical queries require no code changes. DynamoDB was explicitly ruled out
+as it is designed for transactional workloads, not analytical time series queries.
 
 Pipeline orchestration: Prefect handles scheduled data collection with retries,
 observability, and a monitoring dashboard. Prefect Cloud free tier enables
@@ -335,12 +337,11 @@ Infrastructure as code: Cloud resources and deployment configuration should be
 defined in code using Terraform or Pulumi for reproducible environment setup
 across dev, staging, and production.
 
-Production deployment: Before any production deployment, fill in the Dockerfile
-and docker-compose.yml placeholders. Production deployments should run in
-isolated containers with explicit network rules. A dedicated Prefect worker
-running on a cloud VM ensures always-on data collection independent of local
-machine uptime. See docs/security.md for the security model that governs
-production deployments.
+Production deployment: Production deployments should run in isolated containers
+with explicit network rules. A dedicated Prefect worker running on a cloud VM
+(GCP e2-micro free tier) ensures always-on data collection independent of local
+machine uptime. Dockerfile and docker-compose.yml to be completed in Phase 4.
+See docs/security.md for the security model that governs production deployments.
 
 MLflow: Planned for Phase 3 experiment tracking. Removed from Phase 1
 dependencies due to incompatibility with pandas>=3. Will be re-added when
@@ -348,9 +349,18 @@ pandas compatibility is resolved.
 
 Storage management: Configurable size caps per medallion layer (bronze, silver, gold)
 with both time-based and size-based age-off triggers. Aged-off bronze exports to
-Parquet for archival. Dashboard sidebar shows DB size per layer with alerts at cap.
+local Parquet in data/archive/ before deletion. Health tab shows DB size per layer
+with progress bars toward caps and archive history.
 
 Deployment modes: Local real-time system polls every 5 minutes with full 9-ISO
 coverage. Public demo deployment uses Streamlit Community Cloud with seeded
 historical data. Production always-on path uses Cloudflare R2 (10GB free) plus
 GCP e2-micro VM for the pipeline worker.
+
+Cloud archive (R2): When local Parquet archive volume is better understood
+after running real data collection for several weeks, evaluate Cloudflare R2
+(10GB free, no egress fees) as the production archive destination. S3-compatible
+API means minimal code changes — boto3 client already works with R2. Revisit
+after 30-day real historical backfill is running to assess actual storage growth
+rate before committing to cloud setup. Local data/archive/ Parquet export
+serves as interim solution.
