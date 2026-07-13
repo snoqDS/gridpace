@@ -7,6 +7,7 @@ Critical vulnerabilities block merge. High and above are tracked here and must
 be resolved before any release.
 
 Severity levels:
+
     Critical — CI fails, fix immediately, never merge
     High     — fix within one sprint, tracked below
     Medium   — fix at next dependency update cycle
@@ -21,16 +22,15 @@ Status: Clean — no known vulnerabilities
 
 | Date       | Package           | Version | CVEs | Severity | Resolution                        |
 |------------|-------------------|---------|------|----------|-----------------------------------|
-| 2026-06-24 | mlflow            | 1.27.0  | 73   | Critical | Removed — not yet used, add back  |
-                                                       in Phase 3 with compatible pandas version |
+| 2026-06-24 | mlflow            | 1.27.0  | 73   | Critical | Removed — re-add in Phase 3 with compatible pandas version |
 | 2026-06-24 | langsmith         | 0.8.17  | 1    | Medium   | Updated to 0.9.2                  |
 | 2026-06-24 | pydantic-settings | 2.14.1  | 1    | Low      | Updated to 2.14.2                 |
-| 2026-07-13 | pillow | 12.2.0 | 5 | Medium | Updated to 12.3.0 (PYSEC-2026-2253 through 2257)   |
+| 2026-07-13 | pillow            | 12.2.0  | 5    | Medium   | Updated to 12.3.0                 |
 
 ## CI Integration
 
 pip-audit runs automatically on every push via GitHub Actions.
-See .github/workflows/ci.yml — Security audit step.
+See .github/workflows/ci.yml Security audit step.
 Fails the build if any vulnerability is found.
 
 ## Dependency Update Policy
