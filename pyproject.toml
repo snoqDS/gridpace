@@ -13,6 +13,7 @@ dependencies = [
     "langgraph>=1.2.6",
     "langsmith>=0.8.18",
     "pandas>=3.0.3",
+    "pillow>=12.3.0",
     "prefect>=3.7.5",
     "pydantic-settings>=2.14.2",
     "pyomo>=6.10.1",

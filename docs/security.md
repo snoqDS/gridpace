@@ -21,9 +21,11 @@ Status: Clean — no known vulnerabilities
 
 | Date       | Package           | Version | CVEs | Severity | Resolution                        |
 |------------|-------------------|---------|------|----------|-----------------------------------|
-| 2026-06-24 | mlflow            | 1.27.0  | 73   | Critical | Removed — not yet used, add back in Phase 3 with compatible pandas version |
+| 2026-06-24 | mlflow            | 1.27.0  | 73   | Critical | Removed — not yet used, add back  |
+                                                       in Phase 3 with compatible pandas version |
 | 2026-06-24 | langsmith         | 0.8.17  | 1    | Medium   | Updated to 0.9.2                  |
 | 2026-06-24 | pydantic-settings | 2.14.1  | 1    | Low      | Updated to 2.14.2                 |
+| 2026-07-13 | pillow | 12.2.0 | 5 | Medium | Updated to 12.3.0 (PYSEC-2026-2253 through 2257)   |
 
 ## CI Integration
 
