@@ -241,3 +241,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - README.md Current State updated with GitHub Actions pipeline plan
+
+## [0.14.3] - 2026-07-13
+
+### Changed
+- setuptools updated from 81.0.0 to 83.0.0 (PYSEC-2026-3447)
+- torch updated to 2.13.0 as dependency of setuptools update
+- docs/security.md updated with resolved issue

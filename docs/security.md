@@ -26,6 +26,7 @@ Status: Clean — no known vulnerabilities
 | 2026-06-24 | langsmith         | 0.8.17  | 1    | Medium   | Updated to 0.9.2                  |
 | 2026-06-24 | pydantic-settings | 2.14.1  | 1    | Low      | Updated to 2.14.2                 |
 | 2026-07-13 | pillow            | 12.2.0  | 5    | Medium   | Updated to 12.3.0                 |
+| 2026-07-13 | setuptools        | 81.0.0  | 1    | Medium   | Updated to 83.0.0                 |
 
 ## CI Integration
 
