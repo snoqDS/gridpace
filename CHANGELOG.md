@@ -230,3 +230,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - pyproject.toml: added comment clarifying gridstatus vs gridstatusio
 - docs/architecture.md: Future Considerations updated for R2 deferral and storage management
 - Memory cleanup: completed items marked done, stale items removed
+- docs/security.md table formatting fixed
+
+## [0.14.2] - 2026-07-14
+
+### Added
+- Deployment strategy decision documented in architecture.md
+- GitHub Actions confirmed as production pipeline scheduler (free, unlimited on public repos)
+- Comparison of Oracle Cloud, GCP, Render, Railway, Fly.io, Cloudflare Workers vs GitHub Actions
+
+### Changed
+- README.md Current State updated with GitHub Actions pipeline plan

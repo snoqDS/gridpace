@@ -352,10 +352,33 @@ with both time-based and size-based age-off triggers. Aged-off bronze exports to
 local Parquet in data/archive/ before deletion. Health tab shows DB size per layer
 with progress bars toward caps and archive history.
 
-Deployment modes: Local real-time system polls every 5 minutes with full 9-ISO
-coverage. Public demo deployment uses Streamlit Community Cloud with seeded
-historical data. Production always-on path uses Cloudflare R2 (10GB free) plus
-GCP e2-micro VM for the pipeline worker.
+Deployment modes: GridPace uses GitHub Actions on the public repository as the
+production pipeline scheduler. GitHub Actions usage is completely free and
+unlimited for public repositories (docs.github.com/en/actions/concepts/billing-and-usage)
+— no credit card, no minute cap, no billing risk. A scheduled workflow runs
+the pipeline every 5 minutes, fetches live data from all 9 ISOs via gridstatus,
+updates DuckDB, exports the gold layer to Parquet, and commits the result to
+data/demo/. Streamlit Community Cloud auto-redeploys on each commit, giving
+a live public dashboard with zero cost and zero home bandwidth usage.
+
+This was chosen over alternatives after research:
+    Oracle Cloud free tier — real reliability risk (idle reclamation, June 2026
+    limit cuts from 4 to 2 OCPUs, capacity availability issues by region)
+    GCP e2-micro — genuinely free but requires credit card and carries
+    misconfiguration risk (wrong disk type, egress charges)
+    Render/Railway/Fly.io — no longer offer genuinely free always-on compute
+    Cloudflare Workers Cron — free and reliable but JS/WASM only, incompatible
+    with Python/pandas/duckdb pipeline without a full rewrite
+    Local Mac — zero cost but uses home network bandwidth continuously,
+    ruled out for that reason, and offline when laptop is asleep
+
+Known limitations of the GitHub Actions approach: scheduling has minor timing
+jitter (a 5-minute job may fire a few minutes late), and GitHub auto-pauses
+scheduled workflows if no commits occur to the repository for 60 days —
+mitigated by active ongoing development.
+
+Personal 5-minute real-time research system remains local on the Mac,
+independent of the public demo pipeline.
 
 Cloud archive (R2): When local Parquet archive volume is better understood
 after running real data collection for several weeks, evaluate Cloudflare R2

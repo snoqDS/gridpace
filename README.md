@@ -21,6 +21,7 @@ Phase 1 is in progress. The dashboard is running locally with synthetic data.
 - Medallion data architecture (bronze/silver/gold) via DuckDB
 - Storage size caps with Parquet archive export
 - Prefect orchestration with parallel ISO fetching at 5-minute intervals
+- Public demo pipeline runs on GitHub Actions (free, unlimited on public repos) every 5 minutes
 - Streamlit dashboard with 5 tabs: Live Conditions, Price Analytics, Nodal Analysis, Correlations, Health
 
 ## Quick Start
